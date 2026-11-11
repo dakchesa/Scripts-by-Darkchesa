@@ -1,0 +1,58 @@
+{
+  "expo": {
+    "name": "Scripts by Darkchesa",
+    "slug": "scripts-by-darkchesa",
+    "scheme": "scripts-by-darkchesa",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.darkchesa.scripts",
+      "infoPlist": {
+        "CFBundleDocumentTypes": [
+          {
+            "CFBundleTypeName": "Darkchesa Script Document",
+            "CFBundleTypeRole": "Editor",
+            "LSHandlerRank": "Owner",
+            "LSItemContentTypes": ["com.darkchesa.sdach", "public.json"]
+          }
+        ]
+      }
+    },
+    "android": {
+      "package": "com.darkchesa.scripts",
+      "adaptiveIcon": {
+        "backgroundColor": "#121214",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "file",
+              "pathPattern": ".*\\.sdach"
+            },
+            {
+              "scheme": "content",
+              "pathPattern": ".*\\.sdach"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-sharing",
+      "expo-document-picker"
+    ]
+  }
+}

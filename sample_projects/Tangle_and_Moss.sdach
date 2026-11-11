@@ -1,0 +1,142 @@
+{
+  "fileSignature": "SDACH_SCRIPT_FORMAT",
+  "formatVersion": "1.0.0",
+  "appName": "Scripts by Darchesa",
+  "exportedAt": "2026-11-11T12:00:00.000Z",
+  "script": {
+    "id": "script_tangle_and_moss",
+    "title": "Tangle and Moss",
+    "author": "Darchesa Writer",
+    "logline": "Two wanderers find quiet camaraderie amidst the ruins of an old kingdom.",
+    "createdAt": "2026-05-20T10:30:00.000Z",
+    "updatedAt": "2026-05-20T14:45:00.000Z",
+    "settings": {
+      "theme": "dark",
+      "continuousView": true,
+      "fontSize": 12,
+      "showPageNumbers": true,
+      "enableCharacterHighlights": true
+    },
+    "characterPalette": {
+      "TANGLE": "#FFE58F",
+      "MOSSY": "#B7EB8F"
+    },
+    "elements": [
+      {
+        "id": "elem_tm_01",
+        "type": "scene_heading",
+        "text": "EXT. HILLSIDE OVERLOOK - DUSK"
+      },
+      {
+        "id": "elem_tm_02",
+        "type": "action",
+        "text": "Wind ripples through tall sea grass. TANGLE (20s) stands at the crest, shield strapped across her shoulder."
+      },
+      {
+        "id": "elem_tm_03",
+        "type": "character",
+        "text": "TANGLE",
+        "highlightColor": "#FFE58F"
+      },
+      {
+        "id": "elem_tm_04",
+        "type": "dialogue",
+        "text": "I'm not."
+      },
+      {
+        "id": "elem_tm_05",
+        "type": "character",
+        "text": "MOSSY",
+        "highlightColor": "#B7EB8F"
+      },
+      {
+        "id": "elem_tm_06",
+        "type": "dialogue",
+        "text": "It's okay to be scared of things. I seen war and I'm scared of plenty things nowhere near as bad. Should see me around spiders.",
+        "highlightColor": "#D9F7BE"
+      },
+      {
+        "id": "elem_tm_07",
+        "type": "action",
+        "text": "Tangle's caught off guard by his empathy. She lets her guard down... a little:"
+      },
+      {
+        "id": "elem_tm_08",
+        "type": "character",
+        "text": "TANGLE",
+        "highlightColor": "#FFE58F"
+      },
+      {
+        "id": "elem_tm_09",
+        "type": "dialogue",
+        "text": "I don't know how long."
+      },
+      {
+        "id": "elem_tm_10",
+        "type": "character",
+        "text": "MOSSY",
+        "highlightColor": "#B7EB8F"
+      },
+      {
+        "id": "elem_tm_11",
+        "type": "dialogue",
+        "text": "That's okay, too. Don't know how long I've been scared of spiders.",
+        "highlightColor": "#D9F7BE"
+      },
+      {
+        "id": "elem_tm_12",
+        "type": "action",
+        "text": "She looks at him, as if: Who is this guy?",
+        "comment": "Check rhythm here - beat pause"
+      },
+      {
+        "id": "elem_tm_13",
+        "type": "action",
+        "text": "Mossy stops to rest, sits on a boulder."
+      },
+      {
+        "id": "elem_tm_14",
+        "type": "character",
+        "text": "TANGLE",
+        "highlightColor": "#FFE58F"
+      },
+      {
+        "id": "elem_tm_15",
+        "type": "dialogue",
+        "text": "What are you doing now?"
+      },
+      {
+        "id": "elem_tm_16",
+        "type": "action",
+        "text": "Mossy points to the cloudless sky, listens to the BIRDS."
+      },
+      {
+        "id": "elem_tm_17",
+        "type": "character",
+        "text": "MOSSY",
+        "highlightColor": "#B7EB8F"
+      },
+      {
+        "id": "elem_tm_18",
+        "type": "dialogue",
+        "text": "Wow! Listen to that.",
+        "highlightColor": "#D9F7BE"
+      },
+      {
+        "id": "elem_tm_19",
+        "type": "action",
+        "text": "Tangle’s about to protest, but is interrupted by a few haunting notes. Then she listens."
+      },
+      {
+        "id": "elem_tm_20",
+        "type": "transition",
+        "text": "CUT TO:"
+      }
+    ],
+    "stats": {
+      "totalElements": 20,
+      "totalWords": 140,
+      "estimatedPages": 1
+    }
+  }
+}
