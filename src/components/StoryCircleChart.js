@@ -1,59 +1,45 @@
 /**
- * Dan Harmon Story Circle - Circular Vector Chart Component
+ * Dan Harmon Expanded Story Circle - Circular Vector Chart Component
  * Scripts by Darkchesa - "Plot a Plot"
  *
- * Implements the 4 concentric circular layers (Green, Yellow, Red, Pink),
- * 8 equal radial story divisions, central "THE END" circle,
- * number badges, completion indicators, and interactive division selection.
+ * Implements the 4 concentric circular layers with all 8 divisions in every ring:
+ * - Outer Green Layer (Act 1: The Beginning): 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8
+ * - Second Yellow Layer (Act 2: The Middle): 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8
+ * - Third Red Layer (Act 3: The Climax): 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8
+ * - Centre Pink Circle: THE END
  */
 
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Platform } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Platform } from 'react-native';
 import Svg, { Circle, Line, Text as SvgText, G } from 'react-native-svg';
 import { FONTS } from '../constants/theme';
-import { STORY_CIRCLE_LAYERS } from '../types/storyCircle';
+import { STORY_CIRCLE_LAYERS, CORE_8_STAGES } from '../types/storyCircle';
 
 export default function StoryCircleChart({
   divisions = [],
   selectedDivisionId = null,
   onSelectDivision = () => {},
-  size = 380,
+  size = 400,
   theme,
 }) {
   const cx = size / 2;
   const cy = size / 2;
+  const scale = size / 420;
 
-  // Concentric circle radii proportionally scaled
-  const scale = size / 400;
-  const rOuter = 160 * scale;   // Green (Act 1)
-  const rMiddle = 115 * scale;  // Yellow (Act 2)
-  const rInner = 72 * scale;    // Red (Act 3)
-  const rCenter = 36 * scale;   // Pink (The End)
+  // Concentric circle layer radii
+  const rOuter = 185 * scale;  // Green (Act 1)
+  const rMiddle = 135 * scale; // Yellow (Act 2)
+  const rInner = 86 * scale;   // Red (Act 3)
+  const rCenter = 42 * scale;  // Pink (The End)
 
-  // 8 Spoke angles in degrees from 12 o'clock clockwise (0°, 45°, 90°, 135°, 180°, 225°, 270°, 315°)
+  // 8 radial spoke angles in degrees from 12 o'clock (0°, 45°, 90°, 135°, 180°, 225°, 270°, 315°)
   const spokeAnglesDeg = [0, 45, 90, 135, 180, 225, 270, 315];
 
-  // Division center angles & layer radius for placing number badges
-  // 1: Upper-Right (22.5°), Outer Green (avg 115 and 160 = 137.5)
-  // 2: Mid-Right (67.5°), Second Yellow (avg 72 and 115 = 93.5)
-  // 3: Lower-Mid-Right (112.5°), Third Red (avg 36 and 72 = 54)
-  // 4: Bottom-Right (157.5°), Third Red (54)
-  // 5: Bottom-Left (202.5°), Third Red (54)
-  // 6: Lower-Mid-Left (247.5°), Third Red (54)
-  // 7: Upper-Mid-Left (292.5°), Second Yellow (93.5)
-  // 8: Upper-Left (337.5°), Outer Green (137.5)
-  const divisionPlacements = [
-    { id: 1, angleDeg: 22.5, r: 137.5 * scale },
-    { id: 2, angleDeg: 67.5, r: 93.5 * scale },
-    { id: 3, angleDeg: 112.5, r: 54 * scale },
-    { id: 4, angleDeg: 157.5, r: 54 * scale },
-    { id: 5, angleDeg: 202.5, r: 54 * scale },
-    { id: 6, angleDeg: 247.5, r: 54 * scale },
-    { id: 7, angleDeg: 292.5, r: 93.5 * scale },
-    { id: 8, angleDeg: 337.5, r: 137.5 * scale },
-  ];
+  // Radii for badge placement in each ring
+  const rBadgeAct1 = 160 * scale; // (135 + 185) / 2
+  const rBadgeAct2 = 110 * scale; // (86 + 135) / 2
+  const rBadgeAct3 = 64 * scale;  // (42 + 86) / 2
 
-  // Helper to calculate (x, y) from center, radius, and clockwise angle from 12 o'clock
   const getCoordinates = (radius, angleDegrees) => {
     const angleRad = (angleDegrees - 90) * (Math.PI / 180);
     return {
@@ -62,12 +48,18 @@ export default function StoryCircleChart({
     };
   };
 
+  // Ring definitions with their divisions
+  const rings = [
+    { act: 'ACT 1', prefix: '1', rBadge: rBadgeAct1, badgeRadius: 13.5 * scale },
+    { act: 'ACT 2', prefix: '2', rBadge: rBadgeAct2, badgeRadius: 13 * scale },
+    { act: 'ACT 3', prefix: '3', rBadge: rBadgeAct3, badgeRadius: 12.5 * scale },
+  ];
+
   return (
     <View style={styles.container}>
-      {/* Interactive Svg Circular Chart */}
       <View style={[styles.chartWrapper, { width: size, height: size }]}>
         <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-          {/* Layer 1: Outer Circle (GREEN - Act 1) */}
+          {/* Layer 1: Outer Circle (GREEN - Act 1: The Beginning) */}
           <Circle
             cx={cx}
             cy={cy}
@@ -77,7 +69,7 @@ export default function StoryCircleChart({
             strokeWidth={3}
           />
 
-          {/* Layer 2: Second Circle (YELLOW - Act 2) */}
+          {/* Layer 2: Second Circle (YELLOW - Act 2: The Middle) */}
           <Circle
             cx={cx}
             cy={cy}
@@ -87,7 +79,7 @@ export default function StoryCircleChart({
             strokeWidth={3}
           />
 
-          {/* Layer 3: Third Circle (RED - Act 3) */}
+          {/* Layer 3: Third Circle (RED - Act 3: The Climax) */}
           <Circle
             cx={cx}
             cy={cy}
@@ -124,7 +116,7 @@ export default function StoryCircleChart({
             strokeWidth={3}
           />
 
-          {/* Text in Centre Circle: "THE END" */}
+          {/* Centre Text: "THE END" */}
           <SvgText
             x={cx}
             y={cy - 2 * scale}
@@ -148,56 +140,58 @@ export default function StoryCircleChart({
             END
           </SvgText>
 
-          {/* Number Badges 1 to 8 positioned in their designated Act rings */}
-          {divisionPlacements.map((placement) => {
-            const pos = getCoordinates(placement.r, placement.angleDeg);
-            const division = divisions.find((d) => d.id === placement.id) || {};
-            const isCompleted = Boolean(division.completed);
-            const isSelected = selectedDivisionId === placement.id;
-            const badgeRadius = 14 * scale;
+          {/* Badges for all 3 Rings: Act 1 (1.1-1.8), Act 2 (2.1-2.8), Act 3 (3.1-3.8) */}
+          {rings.map((ring) =>
+            CORE_8_STAGES.map((stage) => {
+              const code = `${ring.prefix}.${stage.stage}`;
+              const pos = getCoordinates(ring.rBadge, stage.angleDeg);
+              const division = divisions.find((d) => d.id === code) || {};
+              const isCompleted = Boolean(division.completed);
+              const isSelected = selectedDivisionId === code;
 
-            return (
-              <G
-                key={`badge_${placement.id}`}
-                onPress={() => onSelectDivision(division)}
-              >
-                {/* Glow ring if selected */}
-                {isSelected && (
+              return (
+                <G
+                  key={`badge_${code}`}
+                  onPress={() => onSelectDivision(division)}
+                >
+                  {/* Selection glow */}
+                  {isSelected && (
+                    <Circle
+                      cx={pos.x}
+                      cy={pos.y}
+                      r={ring.badgeRadius + 4}
+                      fill="none"
+                      stroke="#FFFFFF"
+                      strokeWidth={2.5}
+                    />
+                  )}
+
+                  {/* Badge circle */}
                   <Circle
                     cx={pos.x}
                     cy={pos.y}
-                    r={badgeRadius + 5}
-                    fill="none"
-                    stroke="#FFFFFF"
-                    strokeWidth={3}
+                    r={ring.badgeRadius}
+                    fill={isCompleted ? '#15803D' : '#FFFFFF'}
+                    stroke={isSelected ? '#3B82F6' : '#0F172A'}
+                    strokeWidth={2}
                   />
-                )}
 
-                {/* Badge circle */}
-                <Circle
-                  cx={pos.x}
-                  cy={pos.y}
-                  r={badgeRadius}
-                  fill={isCompleted ? '#15803D' : '#FFFFFF'}
-                  stroke={isSelected ? '#3B82F6' : '#0F172A'}
-                  strokeWidth={2.2}
-                />
-
-                {/* Number text or checkmark */}
-                <SvgText
-                  x={pos.x}
-                  y={pos.y + 4.5 * scale}
-                  fill={isCompleted ? '#FFFFFF' : '#0F172A'}
-                  fontSize={Math.max(12, 13 * scale)}
-                  fontWeight="bold"
-                  fontFamily={FONTS.ui}
-                  textAnchor="middle"
-                >
-                  {isCompleted ? '✓' : placement.id.toString()}
-                </SvgText>
-              </G>
-            );
-          })}
+                  {/* Division code (e.g. 1.1) or checkmark */}
+                  <SvgText
+                    x={pos.x}
+                    y={pos.y + (3.5 * scale)}
+                    fill={isCompleted ? '#FFFFFF' : '#0F172A'}
+                    fontSize={Math.max(8.5, 9.5 * scale)}
+                    fontWeight="bold"
+                    fontFamily={FONTS.courier}
+                    textAnchor="middle"
+                  >
+                    {isCompleted ? '✓' : code}
+                  </SvgText>
+                </G>
+              );
+            })
+          )}
         </Svg>
       </View>
 
@@ -231,9 +225,9 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 16,
+    gap: 14,
     marginTop: 14,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 12,
     borderWidth: 1,
@@ -242,17 +236,17 @@ const styles = StyleSheet.create({
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 7,
   },
   legendBox: {
-    width: 24,
-    height: 14,
+    width: 20,
+    height: 12,
     borderRadius: 3,
     borderWidth: 1.5,
     borderColor: '#0F172A',
   },
   legendText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: 'bold',
     fontFamily: FONTS.ui,
   },

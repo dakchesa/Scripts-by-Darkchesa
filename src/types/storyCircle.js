@@ -1,184 +1,256 @@
 /**
- * Dan Harmon Story Circle - Types, Constants & Helpers
+ * Dan Harmon Expanded Story Circle - Types, Constants & Helpers
  * Scripts by Darkchesa - "Plot a Plot"
  *
- * Implements Dan Harmon's eight-stage Story Circle structure
- * with 4 concentric circular layers, 8 equal radial story divisions,
- * progress tracking, and validation rules.
+ * Implements Dan Harmon's Expanded Story Circle structure:
+ * - Four concentric circular layers (Green, Yellow, Red, Pink)
+ * - ACT 1 - GREEN: THE BEGINNING (1.1 through 1.8)
+ * - ACT 2 - YELLOW: THE MIDDLE (2.1 through 2.8)
+ * - ACT 3 - RED: THE CLIMAX (3.1 through 3.8)
+ * - THE END: Centre Circle (PINK)
+ * - Progress tracking across 24 distinct story divisions
  */
 
 export const STORY_CIRCLE_LAYERS = [
   {
     id: 'layer1',
-    name: 'Layer 1 – Outer Circle',
+    name: 'Layer 1 – Outer Circle: GREEN',
     act: 'ACT 1',
+    actTitle: 'ACT 1 - GREEN: THE BEGINNING',
     color: '#22C55E', // Green
-    label: 'Act 1',
-    divisions: [1, 8],
-    description: 'Establishes the character and their familiar world.',
+    label: 'Act 1: The Beginning',
+    divisionPrefix: '1',
+    description: 'The Beginning: Establishes the character, their ordinary world, and the first full journey loop.',
   },
   {
     id: 'layer2',
-    name: 'Layer 2 – Second Circle',
+    name: 'Layer 2 – Second Circle: YELLOW',
     act: 'ACT 2',
+    actTitle: 'ACT 2 - YELLOW: THE MIDDLE',
     color: '#FACC15', // Yellow
-    label: 'Act 2',
-    divisions: [2, 7],
-    description: 'The journey beyond the comfort zone.',
+    label: 'Act 2: The Middle',
+    divisionPrefix: '2',
+    description: 'The Middle: Rising trials, unfamiliar territory, midpoint breakthrough, and crisis.',
   },
   {
     id: 'layer3',
-    name: 'Layer 3 – Third Circle',
+    name: 'Layer 3 – Third Circle: RED',
     act: 'ACT 3',
+    actTitle: 'ACT 3 - RED: THE CLIMAX',
     color: '#EF4444', // Red
-    label: 'Act 3',
-    divisions: [3, 4, 5, 6],
-    description: 'The conflict, adaptation, and heavy price.',
+    label: 'Act 3: The Climax',
+    divisionPrefix: '3',
+    description: 'The Climax: Confrontation, decisive adaptation, heavy sacrifice, and master transformation.',
   },
   {
     id: 'layer4',
-    name: 'Layer 4 – Centre Circle',
+    name: 'Layer 4 – Centre Circle: PINK',
     act: 'THE END',
+    actTitle: 'THE END',
     color: '#F472B6', // Pink
     label: 'The End',
-    divisions: [],
-    description: 'The resolution at the exact centre of the chart.',
+    divisionPrefix: 'end',
+    description: 'The ultimate destination and complete thematic resolution at the exact centre of the chart.',
   },
 ];
 
-export const STORY_CIRCLE_DIVISIONS_SPEC = [
+export const CORE_8_STAGES = [
   {
-    id: 1,
-    number: 1,
-    title: 'ZONE OF COMFORT',
+    stage: 1,
+    name: 'ZONE OF COMFORT',
     subtitle: 'Zone of Comfort',
-    act: 'ACT 1',
-    actName: 'ACT 1 – GREEN: THE BEGINNING',
-    layer: 'Layer 1 – Outer Circle: GREEN',
-    color: '#22C55E',
-    explanation: 'Introduces the protagonist, their everyday life, environment and current circumstances.',
+    shortName: 'Comfort',
+    angleDeg: 22.5, // Upper Right
   },
   {
-    id: 2,
-    number: 2,
-    title: 'DESIRE SOMETHING',
+    stage: 2,
+    name: 'DESIRE SOMETHING',
     subtitle: 'Desire Something',
-    act: 'ACT 2',
-    actName: 'ACT 2 – YELLOW: THE JOURNEY',
-    layer: 'Layer 2 – Second Circle: YELLOW',
-    color: '#FACC15',
-    explanation: 'Establishes what the protagonist wants or believes they need.',
+    shortName: 'Desire',
+    angleDeg: 67.5, // Mid Right
   },
   {
-    id: 3,
-    number: 3,
-    title: 'ENTERS UNFAMILIAR SITUATION (DEFEAT / OVERPOWERED)',
-    subtitle: 'Unfamiliar Situation (defeat / overpowered)',
-    act: 'ACT 3',
-    actName: 'ACT 3 – RED: THE CONFLICT AND RESOLUTION',
-    layer: 'Layer 3 – Third Circle: RED',
-    color: '#EF4444',
-    explanation: 'The protagonist enters an unfamiliar environment or faces a situation in which they are defeated, overwhelmed or out of their depth.',
+    stage: 3,
+    name: 'ENTERS UNFAMILIAR SITUATION',
+    subtitle: 'Enters Unfamiliar Situation (defeat / overpowered)',
+    shortName: 'Unfamiliar',
+    angleDeg: 112.5, // Lower-Mid Right
   },
   {
-    id: 4,
-    number: 4,
-    title: 'ADAPTS TO SITUATION',
+    stage: 4,
+    name: 'ADAPTS TO SITUATION',
     subtitle: 'Adapt to situation',
-    act: 'ACT 3',
-    actName: 'ACT 3 – RED: THE CONFLICT AND RESOLUTION',
-    layer: 'Layer 3 – Third Circle: RED',
-    color: '#EF4444',
-    explanation: 'The protagonist learns to navigate the unfamiliar situation and develops new approaches.',
+    shortName: 'Adapts',
+    angleDeg: 157.5, // Bottom Right
   },
   {
-    id: 5,
-    number: 5,
-    title: 'OVERCOMES (GETS WHAT THEY WANT)',
+    stage: 5,
+    name: 'OVERCOMES (GETS WHAT THEY WANT)',
     subtitle: 'Get what they want',
-    act: 'ACT 3',
-    actName: 'ACT 3 – RED: THE CONFLICT AND RESOLUTION',
-    layer: 'Layer 3 – Third Circle: RED',
-    color: '#EF4444',
-    explanation: 'The protagonist achieves what they originally wanted.',
+    shortName: 'Overcomes',
+    angleDeg: 202.5, // Bottom Left
   },
   {
-    id: 6,
-    number: 6,
-    title: 'PAYS THE HEAVY PRICE',
+    stage: 6,
+    name: 'PAYS THE HEAVY PRICE',
     subtitle: 'Pay Heavy Price',
-    act: 'ACT 3',
-    actName: 'ACT 3 – RED: THE CONFLICT AND RESOLUTION',
-    layer: 'Layer 3 – Third Circle: RED',
-    color: '#EF4444',
-    explanation: 'The protagonist experiences the consequences, sacrifices or costs associated with obtaining what they wanted.',
+    shortName: 'Heavy Price',
+    angleDeg: 247.5, // Lower-Mid Left
   },
   {
-    id: 7,
-    number: 7,
-    title: 'RETURNS TO FAMILIAR SITUATION (ZONE OF COMFORT)',
+    stage: 7,
+    name: 'RETURNS TO FAMILIAR SITUATION',
     subtitle: 'Return to familiar situation (zone of comfort)',
-    act: 'ACT 2',
-    actName: 'ACT 2 – YELLOW: THE JOURNEY',
-    layer: 'Layer 2 – Second Circle: YELLOW',
-    color: '#FACC15',
-    explanation: 'The protagonist returns to a familiar environment or situation, but their experiences have changed their perspective.',
+    shortName: 'Returns',
+    angleDeg: 292.5, // Upper-Mid Left
   },
   {
-    id: 8,
-    number: 8,
-    title: 'CHANGES AS A RESULT OF JOURNEY',
+    stage: 8,
+    name: 'CHANGES AS A RESULT OF JOURNEY',
     subtitle: 'Changed as a result of Journey',
-    act: 'ACT 1',
-    actName: 'ACT 1 – GREEN: THE BEGINNING',
-    layer: 'Layer 1 – Outer Circle: GREEN',
-    color: '#22C55E',
-    explanation: 'Demonstrates how the protagonist has changed as a consequence of the journey. This completes the transition into the story’s new normal.',
+    shortName: 'Changes',
+    angleDeg: 337.5, // Upper Left
   },
 ];
+
+// Explanations tailored to each of the 3 Acts
+const STAGE_EXPLANATIONS = {
+  // ACT 1: THE BEGINNING
+  '1.1': 'Introduces the protagonist in their ordinary world, current circumstances, and baseline status quo.',
+  '1.2': 'An inciting spark or internal dilemma causes the protagonist to want or believe they need something new.',
+  '1.3': 'The protagonist steps across the initial threshold into unfamiliar territory or encounters their first major test.',
+  '1.4': 'They learn the preliminary ropes, develop new approaches, and adapt to early friction.',
+  '1.5': 'They achieve their first meaningful victory or objective, securing an early win.',
+  '1.6': 'An unforeseen price or conflict arises from their actions, escalating the stakes.',
+  '1.7': 'They attempt to retreat to their familiar comfort zone, but realize they cannot turn back.',
+  '1.8': 'The protagonist undergoes an irreversible shift, firmly launching into the broader journey of Act 2.',
+
+  // ACT 2: THE MIDDLE
+  '2.1': 'A temporary new comfort zone is established inside the special or unfamiliar world.',
+  '2.2': 'The protagonist locks onto the primary mission or high-stakes mid-story goal.',
+  '2.3': 'Deeper immersion into hostile, complicated, or intensely competitive territory.',
+  '2.4': 'Adapting under intense pressure: learning critical skills, building alliances, and overcoming major roadblocks.',
+  '2.5': 'The Midpoint breakthrough: The protagonist achieves a major triumph or crucial revelation.',
+  '2.6': 'The All Hope Is Lost crisis: Facing the heaviest consequence, sacrifice, betrayal, or near-defeat.',
+  '2.7': 'Regrouping in the aftermath: Coming to terms with the sacrifice and refocusing perspective.',
+  '2.8': 'Recommitting with clarity and forged resolve, preparing for the ultimate showdown in Act 3.',
+
+  // ACT 3: THE CLIMAX
+  '3.1': 'The calm before the storm: Preparing the battleground, final resources, and rallying allies.',
+  '3.2': 'The ultimate, singular objective: Defeat the central antagonistic force and resolve the story problem.',
+  '3.3': 'Breaching the lion’s den: The final confrontation begins in the most perilous environment.',
+  '3.4': 'The Climax: Synthesizing everything learned throughout the journey to navigate the supreme test.',
+  '3.5': 'Decisive triumph: The protagonist overcomes the central conflict through courage and truth.',
+  '3.6': 'The personal or emotional toll paid to ensure lasting victory and closure.',
+  '3.7': 'Returning home or standing in the newly transformed reality with enlightened perspective.',
+  '3.8': 'The Master of Two Worlds: The protagonist’s journey is complete; a new normal is permanently established.',
+};
 
 /**
- * Create a fresh default Story Circle object
+ * Generate the 24 divisions specification (8 in Act 1, 8 in Act 2, 8 in Act 3)
  */
-export function createDefaultStoryCircle(title = 'Dan Harmon Story Circle') {
+export function buildExpandedDivisionsSpec() {
+  const acts = [
+    {
+      act: 'ACT 1',
+      actTitle: 'ACT 1 - GREEN: THE BEGINNING',
+      prefix: '1',
+      color: '#22C55E',
+      layerName: 'Layer 1 – Outer Circle: GREEN',
+    },
+    {
+      act: 'ACT 2',
+      actTitle: 'ACT 2 - YELLOW: THE MIDDLE',
+      prefix: '2',
+      color: '#FACC15',
+      layerName: 'Layer 2 – Second Circle: YELLOW',
+    },
+    {
+      act: 'ACT 3',
+      actTitle: 'ACT 3 - RED: THE CLIMAX',
+      prefix: '3',
+      color: '#EF4444',
+      layerName: 'Layer 3 – Third Circle: RED',
+    },
+  ];
+
+  const list = [];
+  acts.forEach((actInfo) => {
+    CORE_8_STAGES.forEach((stageInfo) => {
+      const code = `${actInfo.prefix}.${stageInfo.stage}`;
+      list.push({
+        id: code,
+        code,
+        number: code,
+        act: actInfo.act,
+        actTitle: actInfo.actTitle,
+        stage: stageInfo.stage,
+        stageName: stageInfo.name,
+        title: `${code} ${stageInfo.name}`,
+        subtitle: stageInfo.subtitle,
+        shortName: stageInfo.shortName,
+        color: actInfo.color,
+        layer: actInfo.layerName,
+        angleDeg: stageInfo.angleDeg,
+        explanation: STAGE_EXPLANATIONS[code] || stageInfo.subtitle,
+      });
+    });
+  });
+
+  return list;
+}
+
+export const STORY_CIRCLE_DIVISIONS_SPEC = buildExpandedDivisionsSpec();
+
+/**
+ * Create a fresh default Story Circle object (24 divisions across 3 acts + The End)
+ */
+export function createDefaultStoryCircle(title = 'Dan Harmon Expanded Story Circle') {
   return {
-    title: title || 'Dan Harmon Story Circle',
+    title: 'Dan Harmon Expanded Story Circle',
     tagline: 'Feeling stuck? Craft a Plot.',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     layers: STORY_CIRCLE_LAYERS.map((layer) => ({ ...layer })),
     divisions: STORY_CIRCLE_DIVISIONS_SPEC.map((spec) => ({
       id: spec.id,
-      number: spec.number,
+      code: spec.code,
+      number: spec.number || spec.code,
+      act: spec.act,
+      actTitle: spec.actTitle,
+      stage: spec.stage,
+      stageName: spec.stageName,
       title: spec.title,
       subtitle: spec.subtitle,
-      act: spec.act,
-      actName: spec.actName,
-      layer: spec.layer,
+      shortName: spec.shortName,
       color: spec.color,
+      layer: spec.layer,
+      angleDeg: spec.angleDeg,
       explanation: spec.explanation,
       description: '',
       characterActions: '',
       importantEvents: '',
       completed: false,
     })),
+    theEndNotes: '',
     progress: {
       completedCount: 0,
-      totalCount: 8,
+      totalCount: 24,
       percentage: 0,
+      formatted: 'Story progress: 0/24 completed – 0%',
     },
   };
 }
 
 /**
- * Calculate progress statistics for the 8 story divisions
+ * Calculate progress statistics across all 24 story divisions
  */
 export function calculateStoryProgress(divisions = []) {
   if (!Array.isArray(divisions)) {
-    return { completedCount: 0, totalCount: 8, percentage: 0 };
+    return { completedCount: 0, totalCount: 24, percentage: 0, formatted: 'Story progress: 0/24 completed – 0%' };
   }
   const completedCount = divisions.filter((d) => d && Boolean(d.completed)).length;
-  const totalCount = 8;
+  const totalCount = 24;
   const percentage = Math.round((completedCount / totalCount) * 1000) / 10;
   return {
     completedCount,
@@ -198,27 +270,39 @@ export function validateAndSanitizeStoryCircle(rawStoryCircle) {
 
   const defaultCircle = createDefaultStoryCircle(rawStoryCircle.title);
 
-  // Map and sanitize divisions, enforcing exact 8 divisions in fixed order
-  const rawDivisionsMap = {};
+  // Map existing divisions by code or numeric id
+  const rawMap = {};
   if (Array.isArray(rawStoryCircle.divisions)) {
     rawStoryCircle.divisions.forEach((div) => {
-      if (div && typeof div.id === 'number') {
-        rawDivisionsMap[div.id] = div;
+      if (div) {
+        if (typeof div.id === 'string') {
+          rawMap[div.id] = div;
+        } else if (typeof div.code === 'string') {
+          rawMap[div.code] = div;
+        } else if (typeof div.id === 'number') {
+          // Backward compatibility for legacy 8 divisions format (maps 1..8 to Act 1 1.1..1.8)
+          rawMap[`1.${div.id}`] = div;
+        }
       }
     });
   }
 
   const sanitizedDivisions = STORY_CIRCLE_DIVISIONS_SPEC.map((spec) => {
-    const existing = rawDivisionsMap[spec.id] || {};
+    const existing = rawMap[spec.id] || {};
     return {
       id: spec.id,
-      number: spec.number,
-      title: spec.title, // Fixed to prevent structural mistakes
-      subtitle: spec.subtitle,
+      code: spec.code,
+      number: spec.number || spec.code,
       act: spec.act,
-      actName: spec.actName,
-      layer: spec.layer,
+      actTitle: spec.actTitle,
+      stage: spec.stage,
+      stageName: spec.stageName,
+      title: spec.title,
+      subtitle: spec.subtitle,
+      shortName: spec.shortName,
       color: spec.color,
+      layer: spec.layer,
+      angleDeg: spec.angleDeg,
       explanation: spec.explanation,
       description: typeof existing.description === 'string' ? existing.description : '',
       characterActions: typeof existing.characterActions === 'string' ? existing.characterActions : '',
@@ -230,14 +314,13 @@ export function validateAndSanitizeStoryCircle(rawStoryCircle) {
   const progress = calculateStoryProgress(sanitizedDivisions);
 
   return {
-    title: typeof rawStoryCircle.title === 'string' && rawStoryCircle.title.trim()
-      ? rawStoryCircle.title.trim()
-      : 'Dan Harmon Story Circle',
+    title: 'Dan Harmon Expanded Story Circle',
     tagline: 'Feeling stuck? Craft a Plot.',
     createdAt: rawStoryCircle.createdAt || new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     layers: STORY_CIRCLE_LAYERS.map((layer) => ({ ...layer })),
     divisions: sanitizedDivisions,
+    theEndNotes: typeof rawStoryCircle.theEndNotes === 'string' ? rawStoryCircle.theEndNotes : '',
     progress,
   };
 }

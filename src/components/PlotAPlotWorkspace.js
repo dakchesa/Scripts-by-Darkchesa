@@ -14,6 +14,7 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
+  TextInput,
   TouchableOpacity,
   ScrollView,
   StyleSheet,
@@ -28,6 +29,7 @@ import { FONTS } from '../constants/theme';
 import Heroicon from './Heroicon';
 import StoryCircleChart from './StoryCircleChart';
 import StoryDivisionEditorModal from './StoryDivisionEditorModal';
+import ExportResultModal from './ExportResultModal';
 import {
   createDefaultStoryCircle,
   calculateStoryProgress,
@@ -54,10 +56,16 @@ export default function PlotAPlotWorkspace({
   const [editorModalVisible, setEditorModalVisible] = useState(false);
   const [saveStatus, setSaveStatus] = useState('Saved');
   const [isExporting, setIsExporting] = useState(false);
+  const [exportModalVisible, setExportModalVisible] = useState(false);
+  const [exportResultInfo, setExportResultInfo] = useState(null);
+  const [isEditingEndNotes, setIsEditingEndNotes] = useState(false);
+  const [endNotesInput, setEndNotesInput] = useState(() => storyCircle?.theEndNotes || '');
 
   useEffect(() => {
     if (initialStoryCircle) {
-      setStoryCircle(validateAndSanitizeStoryCircle(initialStoryCircle));
+      const sanitized = validateAndSanitizeStoryCircle(initialStoryCircle);
+      setStoryCircle(sanitized);
+      setEndNotesInput(sanitized.theEndNotes || '');
     }
   }, [initialStoryCircle, visible]);
 
@@ -66,10 +74,10 @@ export default function PlotAPlotWorkspace({
   const divisions = storyCircle.divisions || [];
   const progress = calculateStoryProgress(divisions);
 
-  // Group divisions into Acts
-  const act1Divisions = divisions.filter((d) => d.act === 'ACT 1'); // 1 & 8
-  const act2Divisions = divisions.filter((d) => d.act === 'ACT 2'); // 2 & 7
-  const act3Divisions = divisions.filter((d) => d.act === 'ACT 3'); // 3, 4, 5, 6
+  // Group divisions into Acts: Act 1 (1.1-1.8), Act 2 (2.1-2.8), Act 3 (3.1-3.8)
+  const act1Divisions = divisions.filter((d) => d.act === 'ACT 1');
+  const act2Divisions = divisions.filter((d) => d.act === 'ACT 2');
+  const act3Divisions = divisions.filter((d) => d.act === 'ACT 3');
 
   const handleOpenDivisionEditor = (division) => {
     setSelectedDivision(division);
@@ -129,22 +137,27 @@ export default function PlotAPlotWorkspace({
     setSaveStatus('Saved');
   };
 
+  const handleSaveEndNotes = () => {
+    const updatedCircle = {
+      ...storyCircle,
+      updatedAt: new Date().toISOString(),
+      theEndNotes: endNotesInput,
+    };
+    setStoryCircle(updatedCircle);
+    onUpdateStoryCircle(updatedCircle);
+    setIsEditingEndNotes(false);
+    setSaveStatus('Saved');
+  };
+
   const handleExportPdf = async () => {
     try {
       setIsExporting(true);
       const res = await exportStoryCirclePDF(scriptTitle, storyCircle);
       if (res && res.success) {
-        if (Platform.OS === 'web') {
-          // Alert notification on web
-          window.alert(
-            `Dan Harmon Story Circle exported successfully!\n\nDocument: ${res.filename}`
-          );
-        } else {
-          Alert.alert(
-            'Story Circle Exported',
-            `Your Dan Harmon Story Circle PDF was created successfully!\n\nFile: ${res.filename}`
-          );
-        }
+        setExportResultInfo(res);
+        setExportModalVisible(true);
+      } else if (res && !res.success && !res.cancelled) {
+        Alert.alert('PDF Export Error', res.error || 'Failed to export Story Circle PDF');
       }
     } catch (err) {
       Alert.alert('PDF Export Error', err.message);
@@ -167,18 +180,18 @@ export default function PlotAPlotWorkspace({
         ]}
       >
         <View style={styles.cardHeader}>
-          {/* Number badge */}
+          {/* Number / Code badge */}
           <View style={[styles.cardBadge, { backgroundColor: d.color }]}>
-            <Text style={styles.cardBadgeText}>{d.number}</Text>
+            <Text style={styles.cardBadgeText}>{d.code || d.number}</Text>
           </View>
 
           {/* Title & subtitle */}
           <View style={styles.cardTitleBox}>
             <Text style={[styles.cardTitle, { color: theme.text }]}>
-              {d.number}. {d.title}
+              {d.code} {d.stageName || d.title}
             </Text>
             <Text style={[styles.cardSubtitle, { color: theme.textSecondary }]}>
-              {d.subtitle}
+              Stage {d.stage}: {d.subtitle}
             </Text>
           </View>
 
@@ -293,7 +306,7 @@ export default function PlotAPlotWorkspace({
           </TouchableOpacity>
           <View style={styles.headerTitles}>
             <Text style={[styles.pageTitle, { color: theme.text }]}>
-              Dan Harmon Story Circle
+              Dan Harmon Expanded Story Circle
             </Text>
             <Text style={[styles.screenplaySubtitle, { color: theme.textSecondary }]} numberOfLines={1}>
               {scriptTitle} &bull; <Text style={{ fontStyle: 'italic' }}>Feeling stuck? Craft a Plot.</Text>
@@ -335,7 +348,7 @@ export default function PlotAPlotWorkspace({
           <View style={styles.sectionTitleRow}>
             <Heroicon name="story-circle" size={22} color={theme.accent} style={{ marginRight: 8 }} />
             <Text style={[styles.sectionTitle, { color: theme.text }]}>
-              STORY CIRCLE STRUCTURE
+              DAN HARMON EXPANDED STORY CIRCLE
             </Text>
           </View>
           <Text style={[styles.sectionDesc, { color: theme.textSecondary }]}>
@@ -356,7 +369,7 @@ export default function PlotAPlotWorkspace({
           <View style={styles.progressHeader}>
             <View>
               <Text style={[styles.progressTitle, { color: theme.text }]}>
-                Screenplay Story Progress
+                Dan Harmon Expanded Story Circle Progress
               </Text>
               <Text style={[styles.progressSubtitle, { color: theme.textSecondary }]}>
                 {progress.formatted}
@@ -379,41 +392,107 @@ export default function PlotAPlotWorkspace({
             />
           </View>
 
-          {/* Quick 8 Checkbox Indicators Bar */}
-          <View style={styles.quickIndicatorsRow}>
-            {divisions.map((d) => (
-              <TouchableOpacity
-                key={`ind_${d.id}`}
-                onPress={() => handleToggleDivisionCompletion(d.id)}
-                style={[
-                  styles.quickIndicatorBtn,
-                  {
-                    backgroundColor: d.completed ? '#22C55E' : theme.surfaceSubtle,
-                    borderColor: d.color,
-                  },
-                ]}
-                accessibilityLabel={`Toggle step ${d.number}`}
-              >
-                <Text
+          {/* Quick Checkbox Indicators: 3 Rows for Act 1, Act 2, and Act 3 */}
+          <View style={styles.quickIndicatorsContainer}>
+            {/* Act 1 row (1.1 - 1.8) */}
+            <View style={styles.quickRowHeader}>
+              <Text style={[styles.quickRowTitle, { color: '#22C55E' }]}>ACT 1 &bull; THE BEGINNING (1.1 - 1.8)</Text>
+            </View>
+            <View style={styles.quickIndicatorsRow}>
+              {act1Divisions.map((d) => (
+                <TouchableOpacity
+                  key={`ind_${d.id}`}
+                  onPress={() => handleToggleDivisionCompletion(d.id)}
                   style={[
-                    styles.quickIndicatorText,
-                    { color: d.completed ? '#FFFFFF' : theme.text },
+                    styles.quickIndicatorBtn,
+                    {
+                      backgroundColor: d.completed ? '#22C55E' : theme.surfaceSubtle,
+                      borderColor: '#22C55E',
+                    },
                   ]}
+                  accessibilityLabel={`Toggle step ${d.code}`}
                 >
-                  {d.completed ? '✓' : d.number}
-                </Text>
-              </TouchableOpacity>
-            ))}
+                  <Text
+                    style={[
+                      styles.quickIndicatorText,
+                      { color: d.completed ? '#FFFFFF' : theme.text },
+                    ]}
+                  >
+                    {d.completed ? '✓' : d.code}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Act 2 row (2.1 - 2.8) */}
+            <View style={[styles.quickRowHeader, { marginTop: 6 }]}>
+              <Text style={[styles.quickRowTitle, { color: '#EAB308' }]}>ACT 2 &bull; THE MIDDLE (2.1 - 2.8)</Text>
+            </View>
+            <View style={styles.quickIndicatorsRow}>
+              {act2Divisions.map((d) => (
+                <TouchableOpacity
+                  key={`ind_${d.id}`}
+                  onPress={() => handleToggleDivisionCompletion(d.id)}
+                  style={[
+                    styles.quickIndicatorBtn,
+                    {
+                      backgroundColor: d.completed ? '#FACC15' : theme.surfaceSubtle,
+                      borderColor: '#FACC15',
+                    },
+                  ]}
+                  accessibilityLabel={`Toggle step ${d.code}`}
+                >
+                  <Text
+                    style={[
+                      styles.quickIndicatorText,
+                      { color: d.completed ? '#0F172A' : theme.text },
+                    ]}
+                  >
+                    {d.completed ? '✓' : d.code}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Act 3 row (3.1 - 3.8) */}
+            <View style={[styles.quickRowHeader, { marginTop: 6 }]}>
+              <Text style={[styles.quickRowTitle, { color: '#EF4444' }]}>ACT 3 &bull; THE CLIMAX (3.1 - 3.8)</Text>
+            </View>
+            <View style={styles.quickIndicatorsRow}>
+              {act3Divisions.map((d) => (
+                <TouchableOpacity
+                  key={`ind_${d.id}`}
+                  onPress={() => handleToggleDivisionCompletion(d.id)}
+                  style={[
+                    styles.quickIndicatorBtn,
+                    {
+                      backgroundColor: d.completed ? '#EF4444' : theme.surfaceSubtle,
+                      borderColor: '#EF4444',
+                    },
+                  ]}
+                  accessibilityLabel={`Toggle step ${d.code}`}
+                >
+                  <Text
+                    style={[
+                      styles.quickIndicatorText,
+                      { color: d.completed ? '#FFFFFF' : theme.text },
+                    ]}
+                  >
+                    {d.completed ? '✓' : d.code}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
         </View>
 
-        {/* Section 5: Act Explanation Panel */}
+        {/* Section: Act Breakdowns & Story Details */}
         <View style={styles.actsSection}>
           <Text style={[styles.actsSectionHeader, { color: theme.text }]}>
             ACT BREAKDOWNS &amp; STORY DETAILS
           </Text>
 
-          {/* ACT 1 - GREEN */}
+          {/* ACT 1 - GREEN: THE BEGINNING */}
           <View style={styles.actGroup}>
             <View style={[styles.actBanner, { backgroundColor: 'rgba(34, 197, 94, 0.15)', borderColor: '#22C55E' }]}>
               <View style={[styles.actColorBar, { backgroundColor: '#22C55E' }]} />
@@ -422,43 +501,165 @@ export default function PlotAPlotWorkspace({
                   ACT 1 &ndash; GREEN: THE BEGINNING
                 </Text>
                 <Text style={[styles.actBannerDesc, { color: theme.textSecondary }]}>
-                  Story points 1 &amp; 8: Establishes the character and their familiar world.
+                  Outer Circle (Green) &bull; Divisions 1.1 to 1.8: Ordinary world, desire, crossing into the journey.
                 </Text>
               </View>
             </View>
             {act1Divisions.map(renderStoryDivisionCard)}
           </View>
 
-          {/* ACT 2 - YELLOW */}
+          {/* ACT 2 - YELLOW: THE MIDDLE */}
           <View style={styles.actGroup}>
             <View style={[styles.actBanner, { backgroundColor: 'rgba(250, 204, 21, 0.18)', borderColor: '#FACC15' }]}>
               <View style={[styles.actColorBar, { backgroundColor: '#FACC15' }]} />
               <View>
                 <Text style={[styles.actBannerTitle, { color: '#EAB308' }]}>
-                  ACT 2 &ndash; YELLOW: THE JOURNEY
+                  ACT 2 &ndash; YELLOW: THE MIDDLE
                 </Text>
                 <Text style={[styles.actBannerDesc, { color: theme.textSecondary }]}>
-                  Story points 2 &amp; 7: The protagonist leaves comfort, desires something, and returns changed.
+                  Second Circle (Yellow) &bull; Divisions 2.1 to 2.8: Unfamiliar territory, rising trials, midpoint breakthrough, and crisis.
                 </Text>
               </View>
             </View>
             {act2Divisions.map(renderStoryDivisionCard)}
           </View>
 
-          {/* ACT 3 - RED */}
+          {/* ACT 3 - RED: THE CLIMAX */}
           <View style={styles.actGroup}>
             <View style={[styles.actBanner, { backgroundColor: 'rgba(239, 68, 68, 0.15)', borderColor: '#EF4444' }]}>
               <View style={[styles.actColorBar, { backgroundColor: '#EF4444' }]} />
               <View>
                 <Text style={[styles.actBannerTitle, { color: '#EF4444' }]}>
-                  ACT 3 &ndash; RED: THE CONFLICT AND RESOLUTION
+                  ACT 3 &ndash; RED: THE CLIMAX
                 </Text>
                 <Text style={[styles.actBannerDesc, { color: theme.textSecondary }]}>
-                  Story points 3, 4, 5, 6: Unfamiliar trials, adaptation, triumph, and paying the heavy price.
+                  Third Circle (Red) &bull; Divisions 3.1 to 3.8: Confrontation, decisive adaptation, heavy sacrifice, and master transformation.
                 </Text>
               </View>
             </View>
             {act3Divisions.map(renderStoryDivisionCard)}
+          </View>
+
+          {/* THE END */}
+          <View style={styles.actGroup}>
+            <View style={[styles.actBanner, { backgroundColor: 'rgba(244, 114, 182, 0.18)', borderColor: '#F472B6' }]}>
+              <View style={[styles.actColorBar, { backgroundColor: '#EC4899' }]} />
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.actBannerTitle, { color: '#DB2777' }]}>
+                  THE END
+                </Text>
+                <Text style={[styles.actBannerDesc, { color: theme.textSecondary }]}>
+                  Centre Circle (PINK) &bull; The ultimate destination, final thematic resolution, and the permanent new normal.
+                </Text>
+              </View>
+            </View>
+
+            {/* Central Resolution Card */}
+            <View
+              style={[
+                styles.divisionCard,
+                {
+                  backgroundColor: theme.surfaceSubtle,
+                  borderColor: '#F472B6',
+                },
+              ]}
+            >
+              <View style={styles.cardHeader}>
+                <View style={[styles.cardBadge, { backgroundColor: '#F472B6' }]}>
+                  <Text style={[styles.cardBadgeText, { color: '#0F172A', fontSize: 11 }]}>END</Text>
+                </View>
+
+                <View style={styles.cardTitleBox}>
+                  <Text style={[styles.cardTitle, { color: theme.text }]}>
+                    THE END &bull; CENTRAL RESOLUTION
+                  </Text>
+                  <Text style={[styles.cardSubtitle, { color: theme.textSecondary }]}>
+                    Centre Circle of the Expanded Story Circle
+                  </Text>
+                </View>
+              </View>
+
+              <Text style={[styles.cardExplanation, { color: theme.textSecondary }]}>
+                The ultimate destination and complete thematic resolution at the exact centre of the chart. How has the protagonist and their world permanently changed?
+              </Text>
+
+              {isEditingEndNotes ? (
+                <View style={{ marginTop: 8 }}>
+                  <TextInput
+                    style={[
+                      styles.endNotesInput,
+                      {
+                        backgroundColor: theme.surface,
+                        borderColor: '#F472B6',
+                        color: theme.text,
+                      },
+                    ]}
+                    multiline
+                    value={endNotesInput}
+                    onChangeText={setEndNotesInput}
+                    placeholder="Enter final climax resolution and the permanent new normal..."
+                    placeholderTextColor={theme.textSecondary}
+                  />
+                  <View style={styles.endNotesBtnRow}>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setEndNotesInput(storyCircle?.theEndNotes || '');
+                        setIsEditingEndNotes(false);
+                      }}
+                      style={[styles.cancelBtn, { borderColor: theme.border }]}
+                    >
+                      <Text style={[styles.cancelBtnText, { color: theme.textSecondary }]}>Cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={handleSaveEndNotes}
+                      style={[styles.saveBtn, { backgroundColor: '#EC4899' }]}
+                    >
+                      <Text style={styles.saveBtnText}>Save Resolution</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ) : (
+                <View>
+                  {storyCircle?.theEndNotes ? (
+                    <View style={[styles.userContentBox, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                      <Text style={[styles.contentItemLabel, { color: '#DB2777' }]}>
+                        FINAL RESOLUTION &amp; OUTCOME:
+                      </Text>
+                      <Text style={[styles.contentItemText, { color: theme.text }]}>
+                        {storyCircle.theEndNotes}
+                      </Text>
+                    </View>
+                  ) : (
+                    <TouchableOpacity
+                      onPress={() => setIsEditingEndNotes(true)}
+                      style={[styles.emptyPromptBtn, { borderColor: '#F472B6' }]}
+                    >
+                      <Heroicon name="pencil-square" size={16} color="#DB2777" style={{ marginRight: 6 }} />
+                      <Text style={[styles.emptyPromptText, { color: '#DB2777' }]}>
+                        Write central resolution &amp; ending notes...
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+
+                  <View style={styles.cardFooter}>
+                    <View style={styles.statusPill}>
+                      <Text style={[styles.statusPillText, { color: storyCircle?.theEndNotes ? '#22C55E' : theme.textSecondary }]}>
+                        {storyCircle?.theEndNotes ? '✓ RESOLUTION WRITTEN' : 'PENDING ENDING DRAFT'}
+                      </Text>
+                    </View>
+
+                    <TouchableOpacity
+                      onPress={() => setIsEditingEndNotes(true)}
+                      style={[styles.editBtn, { backgroundColor: '#EC4899' }]}
+                      accessibilityLabel="Edit central resolution notes"
+                    >
+                      <Heroicon name="pencil-square" size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
+                      <Text style={styles.editBtnText}>Edit</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -470,6 +671,14 @@ export default function PlotAPlotWorkspace({
         division={selectedDivision}
         onSaveDivision={handleSaveDivision}
         onClearDivision={handleClearDivision}
+        theme={theme}
+      />
+
+      {/* Export Result & Device Location Modal */}
+      <ExportResultModal
+        visible={exportModalVisible}
+        onClose={() => setExportModalVisible(false)}
+        fileInfo={exportResultInfo}
         theme={theme}
       />
     </SafeAreaView>
@@ -621,23 +830,38 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 4,
   },
+  quickIndicatorsContainer: {
+    gap: 8,
+    marginTop: 4,
+  },
+  quickRowHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  quickRowTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    fontFamily: FONTS.ui,
+  },
   quickIndicatorsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 6,
+    gap: 4,
   },
   quickIndicatorBtn: {
     flex: 1,
-    height: 36,
-    borderRadius: 8,
+    height: 32,
+    borderRadius: 6,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
   },
   quickIndicatorText: {
-    fontSize: 13,
+    fontSize: 10.5,
     fontWeight: 'bold',
-    fontFamily: FONTS.ui,
+    fontFamily: FONTS.courier,
   },
   actsSection: {
     marginTop: 8,
@@ -689,9 +913,10 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   cardBadge: {
-    width: 32,
+    minWidth: 36,
     height: 32,
     borderRadius: 16,
+    paddingHorizontal: 4,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 10,
@@ -699,7 +924,7 @@ const styles = StyleSheet.create({
   cardBadgeText: {
     color: '#0F172A',
     fontWeight: '900',
-    fontSize: 15,
+    fontSize: 12.5,
     fontFamily: FONTS.ui,
   },
   cardTitleBox: {
@@ -764,6 +989,43 @@ const styles = StyleSheet.create({
   emptyPromptText: {
     fontSize: 12,
     fontWeight: '600',
+    fontFamily: FONTS.ui,
+  },
+  endNotesInput: {
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 10,
+    fontSize: 13,
+    minHeight: 85,
+    textAlignVertical: 'top',
+    fontFamily: FONTS.courier,
+    marginBottom: 8,
+  },
+  endNotesBtnRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+  },
+  cancelBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    borderWidth: 1,
+  },
+  cancelBtnText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    fontFamily: FONTS.ui,
+  },
+  saveBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 6,
+  },
+  saveBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 'bold',
     fontFamily: FONTS.ui,
   },
   cardFooter: {

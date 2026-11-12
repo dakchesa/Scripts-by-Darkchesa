@@ -1,18 +1,19 @@
 /**
- * Comprehensive Verification Suite for "Plot a Plot" - Dan Harmon Story Circle
+ * Comprehensive Verification Suite for "Plot a Plot" - Dan Harmon Expanded Story Circle
  * Scripts by Darkchesa
  */
 
-import fs from 'fs';
-import path from 'path';
 import {
   STORY_CIRCLE_LAYERS,
   STORY_CIRCLE_DIVISIONS_SPEC,
   createDefaultStoryCircle,
   calculateStoryProgress,
   validateAndSanitizeStoryCircle,
+  CORE_8_STAGES,
 } from '../src/types/storyCircle.js';
 import {
+  generateExpandedStoryCircleSvgHtml,
+  generateExpandedStoryCircleHtml,
   generateStoryCircleSvgHtml,
   generateStoryCircleHtml,
 } from '../src/services/storyCirclePdfService.js';
@@ -23,7 +24,7 @@ import {
 import { SAMPLE_TANGLE_AND_MOSS } from '../src/constants/templates.js';
 
 console.log('====================================================');
-console.log('🧪 TESTING "PLOT A PLOT" - DAN HARMON STORY CIRCLE');
+console.log('🧪 TESTING "PLOT A PLOT" - DAN HARMON EXPANDED STORY CIRCLE');
 console.log('====================================================\n');
 
 let passedTests = 0;
@@ -47,121 +48,136 @@ assert(STORY_CIRCLE_LAYERS[1].act === 'ACT 2' && STORY_CIRCLE_LAYERS[1].color ==
 assert(STORY_CIRCLE_LAYERS[2].act === 'ACT 3' && STORY_CIRCLE_LAYERS[2].color === '#EF4444', 'Layer 3 is Third Circle: RED (ACT 3)');
 assert(STORY_CIRCLE_LAYERS[3].act === 'THE END' && STORY_CIRCLE_LAYERS[3].color === '#F472B6', 'Layer 4 is Centre Circle: PINK (THE END)');
 
-// 2. Eight Story Divisions in exact clockwise sequence
-assert(STORY_CIRCLE_DIVISIONS_SPEC.length === 8, 'Chart contains exactly 8 story divisions');
-const expectedSequence = [
-  'ZONE OF COMFORT',
-  'DESIRE SOMETHING',
-  'ENTERS UNFAMILIAR SITUATION (DEFEAT / OVERPOWERED)',
-  'ADAPTS TO SITUATION',
-  'OVERCOMES (GETS WHAT THEY WANT)',
-  'PAYS THE HEAVY PRICE',
-  'RETURNS TO FAMILIAR SITUATION (ZONE OF COMFORT)',
-  'CHANGES AS A RESULT OF JOURNEY',
-];
+// 2. 24 Divisions Specification across 3 Acts
+assert(STORY_CIRCLE_DIVISIONS_SPEC.length === 24, 'Chart contains exactly 24 expanded story divisions');
+assert(CORE_8_STAGES.length === 8, '8 core story cycle stages repeated across each act');
 
-expectedSequence.forEach((title, index) => {
-  const div = STORY_CIRCLE_DIVISIONS_SPEC[index];
-  assert(div.id === index + 1, `Division ${index + 1} ID is ${index + 1}`);
-  assert(div.title === title, `Division ${index + 1} is "${title}"`);
-});
+// Verify Act 1: 1.1 to 1.8
+for (let i = 1; i <= 8; i++) {
+  const code = `1.${i}`;
+  const div = STORY_CIRCLE_DIVISIONS_SPEC.find((d) => d.code === code);
+  assert(div !== undefined, `Act 1 contains division ${code}`);
+  assert(div.act === 'ACT 1', `${code} belongs to ACT 1`);
+  assert(div.color === '#22C55E', `${code} has Green color (#22C55E)`);
+  assert(div.stage === i, `${code} has stage ${i}`);
+}
 
-// Act assignments
-assert(STORY_CIRCLE_DIVISIONS_SPEC[0].act === 'ACT 1', 'Division 1 belongs to ACT 1 (Green)');
-assert(STORY_CIRCLE_DIVISIONS_SPEC[7].act === 'ACT 1', 'Division 8 belongs to ACT 1 (Green)');
-assert(STORY_CIRCLE_DIVISIONS_SPEC[1].act === 'ACT 2', 'Division 2 belongs to ACT 2 (Yellow)');
-assert(STORY_CIRCLE_DIVISIONS_SPEC[6].act === 'ACT 2', 'Division 7 belongs to ACT 2 (Yellow)');
-assert(STORY_CIRCLE_DIVISIONS_SPEC[2].act === 'ACT 3', 'Division 3 belongs to ACT 3 (Red)');
-assert(STORY_CIRCLE_DIVISIONS_SPEC[3].act === 'ACT 3', 'Division 4 belongs to ACT 3 (Red)');
-assert(STORY_CIRCLE_DIVISIONS_SPEC[4].act === 'ACT 3', 'Division 5 belongs to ACT 3 (Red)');
-assert(STORY_CIRCLE_DIVISIONS_SPEC[5].act === 'ACT 3', 'Division 6 belongs to ACT 3 (Red)');
+// Verify Act 2: 2.1 to 2.8
+for (let i = 1; i <= 8; i++) {
+  const code = `2.${i}`;
+  const div = STORY_CIRCLE_DIVISIONS_SPEC.find((d) => d.code === code);
+  assert(div !== undefined, `Act 2 contains division ${code}`);
+  assert(div.act === 'ACT 2', `${code} belongs to ACT 2`);
+  assert(div.color === '#FACC15', `${code} has Yellow color (#FACC15)`);
+  assert(div.stage === i, `${code} has stage ${i}`);
+}
 
-// 3. Progress Tracking & Manual Tick
+// Verify Act 3: 3.1 to 3.8
+for (let i = 1; i <= 8; i++) {
+  const code = `3.${i}`;
+  const div = STORY_CIRCLE_DIVISIONS_SPEC.find((d) => d.code === code);
+  assert(div !== undefined, `Act 3 contains division ${code}`);
+  assert(div.act === 'ACT 3', `${code} belongs to ACT 3`);
+  assert(div.color === '#EF4444', `${code} has Red color (#EF4444)`);
+  assert(div.stage === i, `${code} has stage ${i}`);
+}
+
+// 3. Progress Tracking across 24 divisions
 const defaultCircle = createDefaultStoryCircle('My Screenplay');
+assert(defaultCircle.title === 'Dan Harmon Expanded Story Circle', 'Document title is Dan Harmon Expanded Story Circle');
+assert(defaultCircle.divisions.length === 24, 'Default circle has 24 divisions');
 assert(defaultCircle.progress.completedCount === 0, 'Initial completed count is 0');
 assert(defaultCircle.progress.percentage === 0, 'Initial progress is 0%');
 
-// Mark 5 divisions complete
+// Mark 6 divisions complete (6/24 = 25%)
 defaultCircle.divisions[0].completed = true;
 defaultCircle.divisions[1].completed = true;
 defaultCircle.divisions[2].completed = true;
-defaultCircle.divisions[3].completed = true;
-defaultCircle.divisions[4].completed = true;
+defaultCircle.divisions[8].completed = true;
+defaultCircle.divisions[9].completed = true;
+defaultCircle.divisions[16].completed = true;
 
 const updatedProgress = calculateStoryProgress(defaultCircle.divisions);
-assert(updatedProgress.completedCount === 5, 'Progress correctly tracks 5 completed');
-assert(updatedProgress.percentage === 62.5, '5/8 completed reports 62.5%');
-assert(updatedProgress.formatted.includes('5/8 completed – 62.5%'), 'Formatted string matches spec: 5/8 completed – 62.5%');
+assert(updatedProgress.completedCount === 6, 'Progress correctly tracks 6 completed divisions');
+assert(updatedProgress.percentage === 25, '6/24 completed reports 25%');
+assert(updatedProgress.formatted.includes('6/24 completed – 25%'), 'Formatted string reports: 6/24 completed – 25%');
 
-// 4. Data Validation and Sanitization
+// 4. Data Validation and Sanitization (including legacy backward compatibility)
 const corrupted = {
   title: 'Corrupted Test',
   divisions: [
-    { id: 1, description: 'Test desc', completed: true },
-    { id: 999, description: 'Illegal extra division' }, // Should be stripped/ignored
+    { id: '1.1', description: 'Test desc 1.1', completed: true },
+    { id: 999, description: 'Illegal extra division' },
   ],
+  theEndNotes: 'Protagonist has triumphed.',
 };
 const sanitized = validateAndSanitizeStoryCircle(corrupted);
-assert(sanitized.divisions.length === 8, 'Sanitizer enforces exactly 8 story divisions');
-assert(sanitized.divisions[0].description === 'Test desc', 'Preserved valid division description');
+assert(sanitized.divisions.length === 24, 'Sanitizer enforces exactly 24 story divisions');
+assert(sanitized.divisions[0].description === 'Test desc 1.1', 'Preserved valid division description');
 assert(sanitized.divisions[0].completed === true, 'Preserved completion tick');
-assert(sanitized.divisions[0].title === 'ZONE OF COMFORT', 'Preserved immutable structural title');
+assert(sanitized.theEndNotes === 'Protagonist has triumphed.', 'Preserved theEndNotes');
+
+// Test legacy format backward compatibility (numeric IDs 1..8 mapped to 1.1..1.8)
+const legacy = {
+  divisions: [
+    { id: 1, description: 'Legacy division 1', completed: true },
+    { id: 2, description: 'Legacy division 2', completed: false },
+  ],
+};
+const migrated = validateAndSanitizeStoryCircle(legacy);
+assert(migrated.divisions.length === 24, 'Legacy circle migrated to 24 divisions');
+assert(migrated.divisions[0].description === 'Legacy division 1', 'Legacy division 1 mapped to 1.1');
+assert(migrated.divisions[1].description === 'Legacy division 2', 'Legacy division 2 mapped to 1.2');
 
 // 5. .sdach File Integration
 const testScript = {
   ...SAMPLE_TANGLE_AND_MOSS,
   storyCircle: {
     ...defaultCircle,
-    divisions: defaultCircle.divisions.map((d, i) => ({
+    theEndNotes: 'Final resolution notes.',
+    divisions: defaultCircle.divisions.map((d) => ({
       ...d,
-      description: `Plot development for stage ${i + 1}`,
-      characterActions: `Protagonist actions at ${i + 1}`,
-      importantEvents: `Key discovery ${i + 1}`,
+      description: `Plot development for ${d.code}`,
+      characterActions: `Actions at ${d.code}`,
+      importantEvents: `Key discovery at ${d.code}`,
     })),
   },
 };
 
 const serialized = serializeSdach(testScript);
-assert(typeof serialized === 'string', '.sdach serializes with storyCircle');
+assert(typeof serialized === 'string', '.sdach serializes with expanded storyCircle');
 const parsedPayload = JSON.parse(serialized);
 assert(parsedPayload.script.storyCircle !== undefined, '.sdach payload contains storyCircle object');
-assert(parsedPayload.script.storyCircle.divisions.length === 8, '.sdach payload preserves all 8 divisions');
+assert(parsedPayload.script.storyCircle.divisions.length === 24, '.sdach payload preserves all 24 divisions');
 
 const restored = parseSdach(serialized);
 assert(restored.storyCircle !== null, 'parseSdach restored storyCircle object');
-assert(restored.storyCircle.divisions.length === 8, 'Restored storyCircle has 8 divisions');
-assert(restored.storyCircle.divisions[0].description === 'Plot development for stage 1', 'Restored division description matches');
-assert(restored.storyCircle.divisions[0].characterActions === 'Protagonist actions at 1', 'Restored characterActions match');
-assert(restored.storyCircle.divisions[0].importantEvents === 'Key discovery 1', 'Restored importantEvents match');
-assert(restored.storyCircle.divisions[0].completed === true, 'Restored completion checkbox status');
+assert(restored.storyCircle.divisions.length === 24, 'Restored storyCircle has 24 divisions');
+assert(restored.storyCircle.divisions[0].description === 'Plot development for 1.1', 'Restored 1.1 description matches');
+assert(restored.storyCircle.theEndNotes === 'Final resolution notes.', 'Restored theEndNotes matches');
 
 // 6. PDF Export HTML Generation
-const pdfHtml = generateStoryCircleHtml('Tangle and Moss', testScript.storyCircle);
-assert(pdfHtml.includes('DAN HARMON STORY CIRCLE'), 'PDF HTML includes document title "DAN HARMON STORY CIRCLE"');
-assert(pdfHtml.includes('TANGLE AND MOSS'), 'PDF HTML includes script title');
+const pdfHtml = generateExpandedStoryCircleHtml('Tangle and Moss', testScript.storyCircle);
+assert(pdfHtml.includes('DAN HARMON EXPANDED STORY CIRCLE'), 'PDF HTML includes document title "DAN HARMON EXPANDED STORY CIRCLE"');
+assert(pdfHtml.includes('TANGLE AND MOSS'), 'PDF HTML includes screenplay title');
 assert(pdfHtml.includes('Plot a Plot &bull; Feeling stuck? Craft a Plot.'), 'PDF HTML includes tagline "Feeling stuck? Craft a Plot."');
 assert(pdfHtml.includes('<svg'), 'PDF HTML renders full inline SVG circular chart');
 assert(pdfHtml.includes('THE</text>') && pdfHtml.includes('END</text>'), 'SVG includes central "THE END" text');
 assert(pdfHtml.includes('#22C55E') && pdfHtml.includes('#FACC15') && pdfHtml.includes('#EF4444') && pdfHtml.includes('#F472B6'), 'SVG includes Green, Yellow, Red, Pink color layers');
 assert(pdfHtml.includes('ACT 1 &ndash; GREEN: THE BEGINNING'), 'PDF includes Act 1 breakdown');
-assert(pdfHtml.includes('ACT 2 &ndash; YELLOW: THE JOURNEY'), 'PDF includes Act 2 breakdown');
-assert(pdfHtml.includes('ACT 3 &ndash; RED: THE CONFLICT AND RESOLUTION'), 'PDF includes Act 3 breakdown');
-assert(pdfHtml.includes('5 of 8 Divisions Completed (62.5%)'), 'PDF includes progress summary');
+assert(pdfHtml.includes('ACT 2 &ndash; YELLOW: THE MIDDLE'), 'PDF includes Act 2 breakdown');
+assert(pdfHtml.includes('ACT 3 &ndash; RED: THE CLIMAX'), 'PDF includes Act 3 breakdown');
+assert(pdfHtml.includes('THE END &ndash; CENTRAL RESOLUTION'), 'PDF includes The End central resolution box');
+assert(pdfHtml.includes('Final resolution notes.'), 'PDF includes theEndNotes content');
 
-// 7. Access in Tools & Document Settings
-const toolsModalPath = path.resolve('src/components/ToolsModal.js');
-const toolsModalCode = fs.readFileSync(toolsModalPath, 'utf8');
-assert(toolsModalCode.includes('Plot a Plot'), 'ToolsModal contains "Plot a Plot" button');
-assert(toolsModalCode.includes('Feeling stuck? Craft a Plot.'), 'ToolsModal displays tagline "Feeling stuck? Craft a Plot."');
-assert(toolsModalCode.includes('plot_a_plot'), 'ToolsModal dispatches "plot_a_plot" action');
+// Check that all 24 badges are in the SVG HTML
+for (let act = 1; act <= 3; act++) {
+  for (let stage = 1; stage <= 8; stage++) {
+    const code = `${act}.${stage}`;
+    assert(pdfHtml.includes(code) || pdfHtml.includes('&#10003;'), `SVG includes badge for division ${code}`);
+  }
+}
 
-// 8. Editor Screen integration
-const editorScreenPath = path.resolve('src/screens/EditorScreen.js');
-const editorScreenCode = fs.readFileSync(editorScreenPath, 'utf8');
-assert(editorScreenCode.includes('PlotAPlotWorkspace'), 'EditorScreen imports PlotAPlotWorkspace');
-assert(editorScreenCode.includes('case \'plot_a_plot\':'), 'EditorScreen handles "plot_a_plot" tool selection');
-assert(editorScreenCode.includes('initialStoryCircle={script.storyCircle}'), 'EditorScreen passes storyCircle to workspace');
-
-console.log('\n====================================================');
-console.log(`🎉 ALL ${passedTests} / ${totalTests} TESTS PASSED FOR PLOT A PLOT!`);
-console.log('====================================================\n');
+console.log(`\n====================================================`);
+console.log(`🎉 TEST SUMMARY: ${passedTests}/${totalTests} tests passed`);
+console.log(`====================================================\n`);

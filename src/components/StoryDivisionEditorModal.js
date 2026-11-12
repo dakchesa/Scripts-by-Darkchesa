@@ -75,13 +75,13 @@ export default function StoryDivisionEditorModal({
     };
 
     if (Platform.OS === 'web') {
-      if (window.confirm(`Are you sure you want to clear "${division.number}. ${division.title}"?`)) {
+      if (window.confirm(`Are you sure you want to clear "${division.code || division.number} ${division.stageName || division.title}"?`)) {
         doClear();
       }
     } else {
       Alert.alert(
         'Clear Story Point',
-        `Are you sure you want to clear all entered plot information for "${division.number}. ${division.title}"?`,
+        `Are you sure you want to clear all entered plot information for "${division.code || division.number} ${division.stageName || division.title}"?`,
         [
           { text: 'Cancel', style: 'cancel' },
           { text: 'Clear', style: 'destructive', onPress: doClear },
@@ -106,14 +106,14 @@ export default function StoryDivisionEditorModal({
           <View style={styles.header}>
             <View style={styles.headerTitleRow}>
               <View style={[styles.actBadge, { backgroundColor: division.color }]}>
-                <Text style={styles.actBadgeText}>{division.number}</Text>
+                <Text style={styles.actBadgeText}>{division.code || division.number}</Text>
               </View>
               <View style={styles.headerTextGroup}>
                 <Text style={[styles.storyPointTitle, { color: theme.text }]} numberOfLines={2}>
-                  {division.number}. {division.title}
+                  {division.code} {division.stageName || division.title}
                 </Text>
                 <Text style={[styles.actLabel, { color: division.color }]}>
-                  {division.act} • {division.layer}
+                  {division.actTitle || division.act} &bull; Stage {division.stage}: {division.subtitle}
                 </Text>
               </View>
             </View>
