@@ -214,15 +214,21 @@ export default function ExportResultModal({
             onPress={onClose}
             style={[
               isPdf
-                ? [styles.primaryActionBtn, { backgroundColor: theme.accent, width: '100%', marginTop: 2 }]
+                ? [styles.primaryActionBtn, { backgroundColor: theme.accent, width: '100%', marginTop: 8 }]
                 : [styles.doneBtn, { borderColor: theme.border }],
             ]}
             accessibilityLabel="Close export modal"
           >
+            <Heroicon
+              name="x-mark"
+              size={15}
+              color={isPdf ? '#FFFFFF' : theme.textSecondary}
+              style={{ marginRight: 5 }}
+            />
             <Text
               style={
                 isPdf
-                  ? styles.primaryActionText
+                  ? [styles.primaryActionText, { color: '#FFFFFF', fontSize: 14 }]
                   : [styles.doneBtnText, { color: theme.textSecondary }]
               }
             >

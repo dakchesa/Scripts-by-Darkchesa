@@ -18,6 +18,7 @@ import {
   Alert,
   Image,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { FONTS } from '../constants/theme';
 import { TEMPLATES } from '../constants/templates';
@@ -38,12 +39,132 @@ import NewScriptModal from '../components/NewScriptModal';
 import ExportResultModal from '../components/ExportResultModal';
 import Heroicon from '../components/Heroicon';
 
+/**
+ * Download App Banner – web only PWA install prompt
+ */
+function DownloadAppBanner({ theme }) {
+  const [deferredPrompt, setDeferredPrompt] = React.useState(null);
+  const [canInstall, setCanInstall] = React.useState(false);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handler = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setCanInstall(true);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleDownload = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setCanInstall(false);
+        setDeferredPrompt(null);
+      }
+    } else {
+      if (typeof window !== 'undefined') {
+        window.alert(
+          'Install Scripts by Darkchesa:\n\n' +
+          '• Chrome / Edge: Click the ⊕ icon in the address bar → "Install"\n' +
+          '• Safari (iOS/macOS): Tap Share → Add to Home Screen\n' +
+          '• Firefox: Tap Menu → Install\n\n' +
+          'The app works fully offline once installed!'
+        );
+      }
+    }
+  };
+
+  return (
+    <View style={[dlStyles.banner, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+      <View style={dlStyles.bannerLeft}>
+        <View style={[dlStyles.iconBadge, { backgroundColor: 'rgba(220,20,60,0.12)' }]}>
+          <Heroicon name="arrow-down-tray" size={22} color="#DC143C" />
+        </View>
+        <View style={dlStyles.bannerText}>
+          <Text style={[dlStyles.bannerTitle, { color: theme.text }]}>
+            Install Scripts by Darkchesa
+          </Text>
+          <Text style={[dlStyles.bannerDesc, { color: theme.textSecondary }]}>
+            Works offline • No internet required • Free
+          </Text>
+        </View>
+      </View>
+      <TouchableOpacity
+        onPress={handleDownload}
+        style={[dlStyles.downloadBtn, { backgroundColor: theme.accent }]}
+        accessibilityLabel="Download the app"
+        activeOpacity={0.85}
+      >
+        <Text style={dlStyles.downloadBtnText}>Download the app</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const dlStyles = StyleSheet.create({
+  banner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginHorizontal: 16,
+    marginBottom: 8,
+    padding: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    gap: 10,
+    flexWrap: 'wrap',
+  },
+  bannerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 10,
+    minWidth: 200,
+  },
+  iconBadge: {
+    width: 42,
+    height: 42,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bannerText: { flex: 1 },
+  bannerTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    fontFamily: FONTS.ui,
+  },
+  bannerDesc: {
+    fontSize: 12,
+    marginTop: 2,
+    fontFamily: FONTS.ui,
+  },
+  downloadBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 10,
+  },
+  downloadBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: 'bold',
+    fontFamily: FONTS.ui,
+  },
+});
+
 export default function HomeScreen({
   onOpenScript,
   isDarkMode,
   onToggleTheme,
   theme,
 }) {
+  const { width: windowWidth } = useWindowDimensions();
+  const isWide = Platform.OS === 'web' && windowWidth > 700;
+
   const [scripts, setScripts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -211,158 +332,169 @@ export default function HomeScreen({
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      {/* App Header */}
-      <View style={[styles.header, { borderBottomColor: theme.border }]}>
-        <View style={styles.brandContainer}>
-          <Image
-            source={require('../../assets/darkchesa-logo.png')}
-            style={styles.logoImage}
-            resizeMode="contain"
-          />
-          <View>
-            <Text style={[styles.brandTitle, { color: theme.text }]}>Scripts by Darkchesa</Text>
-            <Text style={[styles.brandSubtitle, { color: theme.textSecondary }]}>
-              Professional Screenplay Studio
-            </Text>
-          </View>
-        </View>
-
-        {/* Theme Toggle */}
-        <TouchableOpacity
-          onPress={onToggleTheme}
-          style={[styles.themeBtn, { backgroundColor: theme.surfaceSubtle }]}
-          accessibilityLabel="Toggle Dark/Light Mode"
-        >
-          <Heroicon
-            name={isDarkMode ? 'sun' : 'moon'}
-            size={20}
-            color={isDarkMode ? '#FFD591' : '#1890FF'}
-          />
-        </TouchableOpacity>
-      </View>
-
-      {/* Action Buttons: New Document & Open .sdach */}
-      <View style={styles.actionRow}>
-        <TouchableOpacity
-          onPress={() => setNewModalVisible(true)}
-          style={[styles.newDocBtn, { backgroundColor: theme.accent }]}
-          activeOpacity={0.8}
-        >
-          <Heroicon name="plus" size={20} color="#FFFFFF" strokeWidth={2.4} style={{ marginRight: 6 }} />
-          <Text style={styles.newDocText}>New Script</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={handleOpenSdachFile}
-          style={[styles.openSdachBtn, { backgroundColor: theme.surface, borderColor: theme.accent }]}
-          activeOpacity={0.8}
-        >
-          <Heroicon name="folder-open" size={20} color={theme.accent} strokeWidth={2} style={{ marginRight: 6 }} />
-          <Text style={[styles.openSdachText, { color: theme.accent }]}>Open .sdach File</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <View style={[styles.searchBar, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Heroicon name="magnifying-glass" size={19} color={theme.textSecondary} style={{ marginRight: 8 }} />
-          <TextInput
-            style={[styles.searchInput, { color: theme.text }]}
-            placeholder="Search scripts by title or writer..."
-            placeholderTextColor={theme.textSecondary}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          {searchQuery ? (
-            <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-              <Heroicon name="x-mark" size={17} color={theme.textSecondary} />
-            </TouchableOpacity>
-          ) : null}
-        </View>
-      </View>
-
-      {statusMessage ? (
-        <View style={styles.statusBox}>
-          <ActivityIndicator size="small" color={theme.accent} />
-          <Text style={[styles.statusText, { color: theme.accent }]}>{statusMessage}</Text>
-        </View>
-      ) : null}
-
-      {/* Scripts Section */}
-      <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>RECENT SCRIPTS</Text>
-        <Text style={[styles.sectionCount, { color: theme.textSecondary }]}>
-          {filteredScripts.length} project{filteredScripts.length === 1 ? '' : 's'}
-        </Text>
-      </View>
-
-      {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.accent} />
-          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading scripts...</Text>
-        </View>
-      ) : filteredScripts.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <View style={styles.emptyIconBox}>
-            <Heroicon name="document-text" size={48} color={theme.textSecondary} />
-          </View>
-          <Text style={[styles.emptyTitle, { color: theme.text }]}>No Screenplays Found</Text>
-          <Text style={[styles.emptyDesc, { color: theme.textSecondary }]}>
-            {searchQuery
-              ? `No scripts match "${searchQuery}"`
-              : 'Create a new script or open an existing (.sdach) file to begin writing.'}
-          </Text>
-
-          <View style={styles.emptyActions}>
-            <TouchableOpacity
-              onPress={() => setNewModalVisible(true)}
-              style={[styles.emptyActionBtn, { backgroundColor: theme.accent }]}
-            >
-              <Text style={{ color: '#FFFFFF', fontWeight: 'bold', fontSize: 15 }}>Create New Script</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={handleOpenSdachFile}
-              style={[styles.emptyActionBtn, { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1 }]}
-            >
-              <Text style={{ color: theme.text, fontSize: 15, fontWeight: '500' }}>Open .sdach File</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      ) : (
-        <FlatList
-          data={filteredScripts}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <ScriptCard
-              scriptMeta={item}
-              onOpen={handleOpenScript}
-              onExportSdach={handleExportSdach}
-              onExportPdf={handleExportPdf}
-              onDuplicate={handleDuplicate}
-              onDelete={handleDelete}
-              theme={theme}
+      {/* Web: center content in a max-width column */}
+      <View style={[
+        styles.inner,
+        isWide && { maxWidth: 760, alignSelf: 'center', width: '100%' },
+      ]}>
+        {/* App Header */}
+        <View style={[styles.header, { borderBottomColor: theme.border }]}>
+          <View style={styles.brandContainer}>
+            <Image
+              source={require('../../assets/darkchesa-logo.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
             />
-          )}
+            <View>
+              <Text style={[styles.brandTitle, { color: theme.text }]}>Scripts by Darkchesa</Text>
+              <Text style={[styles.brandSubtitle, { color: theme.textSecondary }]}>
+                Professional Screenplay Studio
+              </Text>
+            </View>
+          </View>
+
+          {/* Theme Toggle */}
+          <TouchableOpacity
+            onPress={onToggleTheme}
+            style={[styles.themeBtn, { backgroundColor: theme.surfaceSubtle }]}
+            accessibilityLabel="Toggle Dark/Light Mode"
+          >
+            <Heroicon
+              name={isDarkMode ? 'sun' : 'moon'}
+              size={20}
+              color={isDarkMode ? '#FFD591' : '#1890FF'}
+            />
+          </TouchableOpacity>
+        </View>
+
+        {/* Action Buttons: New Document & Open .sdach */}
+        <View style={styles.actionRow}>
+          <TouchableOpacity
+            onPress={() => setNewModalVisible(true)}
+            style={[styles.newDocBtn, { backgroundColor: theme.accent }]}
+            activeOpacity={0.8}
+          >
+            <Heroicon name="plus" size={20} color="#FFFFFF" strokeWidth={2.4} style={{ marginRight: 6 }} />
+            <Text style={styles.newDocText}>New Script</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={handleOpenSdachFile}
+            style={[styles.openSdachBtn, { backgroundColor: theme.surface, borderColor: theme.accent }]}
+            activeOpacity={0.8}
+          >
+            <Heroicon name="folder-open" size={20} color={theme.accent} strokeWidth={2} style={{ marginRight: 6 }} />
+            <Text style={[styles.openSdachText, { color: theme.accent }]}>Open .sdach File</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Download App Banner – web only */}
+        {Platform.OS === 'web' && (
+          <DownloadAppBanner theme={theme} />
+        )}
+
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <View style={[styles.searchBar, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Heroicon name="magnifying-glass" size={19} color={theme.textSecondary} style={{ marginRight: 8 }} />
+            <TextInput
+              style={[styles.searchInput, { color: theme.text }]}
+              placeholder="Search scripts by title or writer..."
+              placeholderTextColor={theme.textSecondary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+            {searchQuery ? (
+              <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Heroicon name="x-mark" size={17} color={theme.textSecondary} />
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        </View>
+
+        {statusMessage ? (
+          <View style={styles.statusBox}>
+            <ActivityIndicator size="small" color={theme.accent} />
+            <Text style={[styles.statusText, { color: theme.accent }]}>{statusMessage}</Text>
+          </View>
+        ) : null}
+
+        {/* Scripts Section */}
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>RECENT SCRIPTS</Text>
+          <Text style={[styles.sectionCount, { color: theme.textSecondary }]}>
+            {filteredScripts.length} project{filteredScripts.length === 1 ? '' : 's'}
+          </Text>
+        </View>
+
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={theme.accent} />
+            <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading scripts...</Text>
+          </View>
+        ) : filteredScripts.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <View style={styles.emptyIconBox}>
+              <Heroicon name="document-text" size={48} color={theme.textSecondary} />
+            </View>
+            <Text style={[styles.emptyTitle, { color: theme.text }]}>No Screenplays Found</Text>
+            <Text style={[styles.emptyDesc, { color: theme.textSecondary }]}>
+              {searchQuery
+                ? `No scripts match "${searchQuery}"`
+                : 'Create a new script or open an existing (.sdach) file to begin writing.'}
+            </Text>
+
+            <View style={styles.emptyActions}>
+              <TouchableOpacity
+                onPress={() => setNewModalVisible(true)}
+                style={[styles.emptyActionBtn, { backgroundColor: theme.accent }]}
+              >
+                <Text style={{ color: '#FFFFFF', fontWeight: 'bold', fontSize: 15 }}>Create New Script</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleOpenSdachFile}
+                style={[styles.emptyActionBtn, { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1 }]}
+              >
+                <Text style={{ color: theme.text, fontSize: 15, fontWeight: '500' }}>Open .sdach File</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : (
+          <FlatList
+            data={filteredScripts}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContent}
+            renderItem={({ item }) => (
+              <ScriptCard
+                scriptMeta={item}
+                onOpen={handleOpenScript}
+                onExportSdach={handleExportSdach}
+                onExportPdf={handleExportPdf}
+                onDuplicate={handleDuplicate}
+                onDelete={handleDelete}
+                theme={theme}
+              />
+            )}
+          />
+        )}
+
+        {/* New Script Modal */}
+        <NewScriptModal
+          visible={newModalVisible}
+          onClose={() => setNewModalVisible(false)}
+          onCreateScript={handleCreateNewScript}
+          theme={theme}
         />
-      )}
 
-      {/* New Script Modal */}
-      <NewScriptModal
-        visible={newModalVisible}
-        onClose={() => setNewModalVisible(false)}
-        onCreateScript={handleCreateNewScript}
-        theme={theme}
-      />
-
-      {/* Export Result & Device Location Modal */}
-      <ExportResultModal
-        visible={exportModalVisible}
-        onClose={() => setExportModalVisible(false)}
-        fileInfo={exportResultInfo}
-        theme={theme}
-      />
+        {/* Export Result & Device Location Modal */}
+        <ExportResultModal
+          visible={exportModalVisible}
+          onClose={() => setExportModalVisible(false)}
+          fileInfo={exportResultInfo}
+          theme={theme}
+        />
+      </View>
     </View>
   );
 }
@@ -370,6 +502,11 @@ export default function HomeScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    ...Platform.select({ web: { overflowY: 'auto' } }),
+  },
+  inner: {
+    flex: 1,
+    width: '100%',
   },
   header: {
     flexDirection: 'row',

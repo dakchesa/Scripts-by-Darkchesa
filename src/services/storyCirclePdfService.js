@@ -144,7 +144,7 @@ export function generateExpandedStoryCircleSvgHtml(divisions = [], size = 380) {
 export function generateExpandedStoryCircleHtml(scriptTitle = 'Screenplay', storyCircle) {
   const divisions = storyCircle?.divisions || [];
   const progress = calculateStoryProgress(divisions);
-  const svgHtml = generateExpandedStoryCircleSvgHtml(divisions, 360);
+  const svgHtml = generateExpandedStoryCircleSvgHtml(divisions, 310);
 
   // Group divisions into Acts in strict required order:
   // Act 1 (1.1 - 1.8), Act 2 (2.1 - 2.8), Act 3 (3.1 - 3.8)
@@ -152,34 +152,44 @@ export function generateExpandedStoryCircleHtml(scriptTitle = 'Screenplay', stor
   const act2Divisions = divisions.filter((d) => d.act === 'ACT 2');
   const act3Divisions = divisions.filter((d) => d.act === 'ACT 3');
 
-  const renderDivisionCard = (d) => `
-    <div class="division-card ${d.completed ? 'completed' : ''}">
-      <div class="division-header">
-        <span class="division-code" style="background-color: ${d.color};">${d.code}</span>
-        <span class="division-title">${escapeHtml(d.title)}</span>
-        <span class="status-badge ${d.completed ? 'badge-completed' : 'badge-pending'}">
-          ${d.completed ? '&#10003; WRITTEN IN SCRIPT' : 'PENDING'}
-        </span>
-      </div>
-      <div class="division-explanation">${escapeHtml(d.explanation)}</div>
-      
-      <div class="division-field">
-        <div class="field-label">STORY DESCRIPTION:</div>
-        <div class="field-content">${escapeHtml(d.description || 'No description entered yet.')}</div>
-      </div>
-
-      ${d.characterActions ? `
-      <div class="division-field">
-        <div class="field-label">CHARACTER ACTIONS:</div>
-        <div class="field-content">${escapeHtml(d.characterActions)}</div>
-      </div>` : ''}
-
-      ${d.importantEvents ? `
-      <div class="division-field">
-        <div class="field-label">IMPORTANT EVENTS / TURNING POINTS:</div>
-        <div class="field-content">${escapeHtml(d.importantEvents)}</div>
-      </div>` : ''}
-    </div>
+  const renderActTable = (actDivisions, actClass, thClass) => `
+    <table class="act-table ${actClass}">
+      <thead>
+        <tr>
+          <th class="${thClass}" style="width: 20%;">STAGE &amp; OBJECTIVE</th>
+          <th class="${thClass}" style="width: 33%;">STORY DESCRIPTION</th>
+          <th class="${thClass}" style="width: 24%;">CHARACTER ACTIONS</th>
+          <th class="${thClass}" style="width: 14%;">KEY EVENTS</th>
+          <th class="${thClass}" style="width: 9%; text-align: center;">STATUS</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${actDivisions.map((d) => `
+          <tr class="${d.completed ? 'completed-row' : ''}">
+            <td class="cell-stage">
+              <span class="stage-code-badge" style="background-color: ${d.color};">${d.code}</span>
+              <div class="stage-name">${escapeHtml(d.stageName || d.title)}</div>
+              <div class="stage-subtitle">${escapeHtml(d.subtitle || '')}</div>
+              <div class="stage-expl">${escapeHtml(d.explanation || '')}</div>
+            </td>
+            <td class="cell-desc">
+              ${escapeHtml(d.description || '—')}
+            </td>
+            <td class="cell-actions">
+              ${escapeHtml(d.characterActions || '—')}
+            </td>
+            <td class="cell-events">
+              ${escapeHtml(d.importantEvents || '—')}
+            </td>
+            <td class="cell-status" style="text-align: center;">
+              <span class="status-badge ${d.completed ? 'badge-completed' : 'badge-pending'}">
+                ${d.completed ? '&#10003; Done' : 'Pending'}
+              </span>
+            </td>
+          </tr>
+        `).join('\n')}
+      </tbody>
+    </table>
   `;
 
   return `
@@ -191,14 +201,10 @@ export function generateExpandedStoryCircleHtml(scriptTitle = 'Screenplay', stor
         <style>
           @page {
             size: letter;
-            margin: 0.8in 0.8in 0.8in 0.8in;
-            @top-right {
-              content: "Scripts by Darkchesa";
-              font-family: "Courier New", Courier, monospace;
-              font-size: 9pt;
-              color: #64748B;
-            }
+            margin: 0.42in 0.42in 0.42in 0.42in;
           }
+
+          * { box-sizing: border-box; }
 
           body {
             font-family: "Courier New", Courier, monospace;
@@ -206,292 +212,339 @@ export function generateExpandedStoryCircleHtml(scriptTitle = 'Screenplay', stor
             background-color: #FFFFFF;
             margin: 0;
             padding: 0;
-            line-height: 1.4;
+            line-height: 1.28;
+            font-size: 7.5pt;
           }
 
           .header {
             text-align: center;
             border-bottom: 2px solid #0F172A;
-            padding-bottom: 14px;
-            margin-bottom: 20px;
+            padding-bottom: 7px;
+            margin-bottom: 9px;
           }
 
           .doc-title {
-            font-size: 22pt;
+            font-size: 16pt;
             font-weight: 900;
-            letter-spacing: 1px;
-            margin: 0;
+            letter-spacing: 0.5px;
+            margin: 0 0 2px 0;
           }
 
           .script-title {
-            font-size: 14pt;
+            font-size: 10.5pt;
             font-weight: bold;
-            color: #475569;
-            margin-top: 4px;
+            color: #334155;
+            margin-top: 2px;
           }
 
           .tagline {
-            font-size: 11pt;
+            font-size: 8.5pt;
             font-style: italic;
             color: #64748B;
-            margin-top: 2px;
+            margin-top: 1px;
+          }
+
+          .first-page {
+            page-break-after: always;
+            break-after: page;
           }
 
           .chart-section {
             text-align: center;
-            margin-bottom: 24px;
-            page-break-inside: avoid;
+            margin-bottom: 9px;
           }
 
           .legend-bar {
             display: flex;
             justify-content: center;
-            gap: 16px;
-            margin-top: 14px;
-            font-size: 10pt;
+            gap: 10px;
+            margin-top: 7px;
+            font-size: 8pt;
             font-weight: bold;
+            flex-wrap: wrap;
           }
 
           .legend-item {
             display: inline-flex;
             align-items: center;
-            margin: 0 8px;
+            margin: 0 4px;
           }
 
           .legend-color {
             display: inline-block;
-            width: 18px;
-            height: 12px;
+            width: 13px;
+            height: 9px;
             border: 1.5px solid #0F172A;
-            margin-right: 6px;
+            margin-right: 4px;
             vertical-align: middle;
           }
 
           .progress-banner {
             background-color: #F8FAFC;
-            border: 2px solid #E2E8F0;
-            border-radius: 8px;
-            padding: 12px 18px;
-            margin-bottom: 26px;
+            border: 1.5px solid #CBD5E1;
+            border-radius: 5px;
+            padding: 6px 12px;
+            margin-top: 7px;
+            margin-bottom: 8px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            page-break-inside: avoid;
           }
 
           .progress-label {
-            font-size: 11pt;
+            font-size: 8.5pt;
             font-weight: bold;
           }
 
           .progress-stat {
-            font-size: 13pt;
+            font-size: 10pt;
             font-weight: 900;
             color: #16A34A;
           }
 
-          .act-section {
-            margin-bottom: 28px;
+          .cover-overview-note {
+            text-align: center;
+            font-size: 8pt;
+            font-style: italic;
+            color: #64748B;
+            margin-top: 8px;
+          }
+
+          /* Individual Act Pages – each act starts on its own page */
+          .act-page {
+            page-break-before: always;
+            break-before: page;
+            padding-top: 0;
+            margin-top: 0;
+          }
+
+          /* Keep header + subnote together so they don't split from their label */
+          .act-page-header-block {
             page-break-inside: avoid;
+            break-inside: avoid;
+            margin-bottom: 5px;
           }
 
           .act-header {
-            font-size: 13pt;
+            font-size: 10.5pt;
             font-weight: 900;
-            padding: 8px 12px;
-            border-radius: 6px;
-            margin-bottom: 12px;
-            border-left: 8px solid #0F172A;
+            padding: 5px 8px;
+            border-radius: 3px;
+            margin-bottom: 2px;
+            border-left: 5px solid #0F172A;
           }
 
-          .act-header.act1 {
-            background-color: rgba(34, 197, 94, 0.18);
-            border-left-color: #16A34A;
+          .act-header.act1 { background-color: rgba(34,197,94,0.18); border-left-color: #16A34A; }
+          .act-header.act2 { background-color: rgba(250,204,21,0.22); border-left-color: #CA8A04; }
+          .act-header.act3 { background-color: rgba(239,68,68,0.18); border-left-color: #DC2626; }
+          .act-header.the-end { background-color: rgba(244,114,182,0.2); border-left-color: #DB2777; }
+
+          .act-subnote {
+            font-size: 7.5pt;
+            color: #64748B;
+            margin-bottom: 5px;
+            padding-left: 3px;
           }
 
-          .act-header.act2 {
-            background-color: rgba(250, 204, 21, 0.22);
-            border-left-color: #CA8A04;
+          /*
+           * TABLE — no page-break-inside:avoid on the whole table;
+           * that was causing blank pages. Rows are allowed to break
+           * across pages naturally. Only the header row is kept together.
+           */
+          .act-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            font-size: 7pt;
           }
 
-          .act-header.act3 {
-            background-color: rgba(239, 68, 68, 0.18);
-            border-left-color: #DC2626;
-          }
-
-          .act-header.the-end {
-            background-color: rgba(244, 114, 182, 0.2);
-            border-left-color: #DB2777;
-          }
-
-          .division-card {
-            border: 1.5px solid #CBD5E1;
-            border-radius: 8px;
-            padding: 14px;
-            margin-bottom: 14px;
-            background-color: #FFFFFF;
+          .act-table thead tr {
             page-break-inside: avoid;
+            break-inside: avoid;
           }
 
-          .division-card.completed {
-            border-color: #22C55E;
-            background-color: #F0FDF4;
-          }
-
-          .division-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 6px;
-          }
-
-          .division-code {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 6px;
+          .act-table th {
+            padding: 4px 5px;
             font-weight: 900;
             color: #0F172A;
             border: 1.5px solid #0F172A;
-            margin-right: 10px;
-            font-size: 10pt;
+            font-size: 7pt;
+            letter-spacing: 0.2px;
           }
 
-          .division-title {
-            font-size: 11pt;
-            font-weight: bold;
-            flex-grow: 1;
+          .act-table th.act1-th { background-color: rgba(34,197,94,0.28); }
+          .act-table th.act2-th { background-color: rgba(250,204,21,0.32); }
+          .act-table th.act3-th { background-color: rgba(239,68,68,0.25); }
+
+          .act-table td {
+            border: 1px solid #CBD5E1;
+            padding: 3px 5px;
+            vertical-align: top;
+            font-size: 7pt;
+            line-height: 1.28;
+            word-break: break-word;
+            overflow-wrap: break-word;
           }
+
+          .act-table tr { orphans: 2; widows: 2; }
+          .act-table tr:nth-child(even) { background-color: #F8FAFC; }
+          .act-table tr.completed-row { background-color: #F0FDF4; }
+
+          .stage-code-badge {
+            display: inline-block;
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-weight: 900;
+            font-size: 7pt;
+            color: #0F172A;
+            border: 1px solid #0F172A;
+            margin-bottom: 2px;
+          }
+
+          .stage-name { font-weight: bold; font-size: 7pt; color: #0F172A; margin-bottom: 1px; }
+          .stage-subtitle { font-size: 6.5pt; color: #475569; margin-bottom: 1px; }
+          .stage-expl { font-size: 6pt; font-style: italic; color: #64748B; line-height: 1.2; }
+
+          .cell-desc  { font-size: 7pt; color: #0F172A; word-break: break-word; }
+          .cell-actions { font-size: 6.5pt; color: #334155; word-break: break-word; }
+          .cell-events  { font-size: 6.5pt; color: #334155; word-break: break-word; }
 
           .status-badge {
-            font-size: 9pt;
+            display: inline-block;
+            font-size: 6.5pt;
             font-weight: bold;
-            padding: 3px 8px;
-            border-radius: 4px;
-            float: right;
+            padding: 1px 4px;
+            border-radius: 3px;
+            white-space: nowrap;
           }
 
-          .badge-completed {
-            background-color: #DCFCE7;
-            color: #15803D;
-            border: 1px solid #86EFAC;
-          }
-
-          .badge-pending {
-            background-color: #F1F5F9;
-            color: #64748B;
-            border: 1px solid #CBD5E1;
-          }
-
-          .division-explanation {
-            font-size: 9.5pt;
-            font-style: italic;
-            color: #475569;
-            margin-bottom: 10px;
-            padding-left: 36px;
-          }
-
-          .division-field {
-            margin-top: 8px;
-            padding-left: 36px;
-          }
-
-          .field-label {
-            font-size: 8.5pt;
-            font-weight: bold;
-            color: #64748B;
-            letter-spacing: 0.5px;
-          }
-
-          .field-content {
-            font-size: 10.5pt;
-            color: #0F172A;
-            margin-top: 2px;
-            white-space: pre-wrap;
-          }
+          .badge-completed { background-color: #DCFCE7; color: #15803D; border: 1px solid #86EFAC; }
+          .badge-pending   { background-color: #F1F5F9; color: #64748B; border: 1px solid #CBD5E1; }
 
           .the-end-box {
             border: 2px solid #F472B6;
             background-color: #FDF2F8;
-            border-radius: 10px;
-            padding: 16px;
-            margin-top: 20px;
-            page-break-inside: avoid;
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 10px;
+            margin-bottom: 12px;
           }
 
-          .the-end-title {
-            font-size: 14pt;
-            font-weight: 900;
-            color: #BE185D;
-            margin-bottom: 8px;
+          .the-end-title { font-size: 12pt; font-weight: 900; color: #BE185D; margin-bottom: 6px; }
+          .the-end-text  { font-size: 9pt; line-height: 1.4; color: #0F172A; word-break: break-word; }
+
+          .end-summary-grid { display: flex; gap: 10px; margin-top: 10px; }
+
+          .end-summary-card {
+            flex: 1;
+            background-color: #FFFFFF;
+            border: 1.5px solid #CBD5E1;
+            border-radius: 5px;
+            padding: 8px;
           }
 
-          .the-end-text {
-            font-size: 11pt;
-            line-height: 1.5;
-            color: #0F172A;
-          }
+          .end-summary-label { font-size: 7pt; font-weight: bold; color: #64748B; }
+          .end-summary-val   { font-size: 10pt; font-weight: 900; color: #0F172A; margin-top: 2px; }
 
           .footer {
             text-align: center;
-            font-size: 9pt;
+            font-size: 7.5pt;
             color: #94A3B8;
-            margin-top: 30px;
+            margin-top: 16px;
             border-top: 1px solid #E2E8F0;
-            padding-top: 12px;
+            padding-top: 7px;
           }
         </style>
       </head>
       <body>
-        <div class="header">
-          <h1 class="doc-title">DAN HARMON EXPANDED STORY CIRCLE</h1>
-          <div class="script-title">${escapeHtml(scriptTitle.toUpperCase())}</div>
-          <div class="tagline">Plot a Plot &bull; Feeling stuck? Craft a Plot.</div>
-        </div>
+        <!-- PAGE 1: STORY CIRCLE OVERVIEW & CIRCULAR CHART -->
+        <div class="first-page">
+          <div class="header">
+            <h1 class="doc-title">DAN HARMON EXPANDED STORY CIRCLE</h1>
+            <div class="script-title">${escapeHtml(scriptTitle.toUpperCase())}</div>
+            <div class="tagline">Plot a Plot &bull; Feeling stuck? Craft a Plot.</div>
+          </div>
 
-        <!-- Circular Vector Chart -->
-        <div class="chart-section">
-          ${svgHtml}
-          <div class="legend-bar">
-            <span class="legend-item"><span class="legend-color" style="background:#22C55E;"></span> Act 1: The Beginning (1.1 - 1.8)</span>
-            <span class="legend-item"><span class="legend-color" style="background:#FACC15;"></span> Act 2: The Middle (2.1 - 2.8)</span>
-            <span class="legend-item"><span class="legend-color" style="background:#EF4444;"></span> Act 3: The Climax (3.1 - 3.8)</span>
-            <span class="legend-item"><span class="legend-color" style="background:#F472B6;"></span> The End</span>
+          <!-- Circular Vector Chart -->
+          <div class="chart-section">
+            ${svgHtml}
+            <div class="legend-bar">
+              <span class="legend-item"><span class="legend-color" style="background:#22C55E;"></span> Act 1: The Beginning (1.1 - 1.8)</span>
+              <span class="legend-item"><span class="legend-color" style="background:#FACC15;"></span> Act 2: The Middle (2.1 - 2.8)</span>
+              <span class="legend-item"><span class="legend-color" style="background:#EF4444;"></span> Act 3: The Climax (3.1 - 3.8)</span>
+              <span class="legend-item"><span class="legend-color" style="background:#F472B6;"></span> The End</span>
+            </div>
+          </div>
+
+          <!-- Progress Summary -->
+          <div class="progress-banner">
+            <span class="progress-label">EXPANDED STORY CIRCLE PROGRESS:</span>
+            <span class="progress-stat">${progress.completedCount} of 24 Divisions Completed (${progress.percentage}%)</span>
+          </div>
+
+          <div class="cover-overview-note">
+            Tabular breakdowns for Act 1 (The Beginning), Act 2 (The Middle), Act 3 (The Climax), and The End follow on dedicated pages.
           </div>
         </div>
 
-        <!-- Progress Summary -->
-        <div class="progress-banner">
-          <span class="progress-label">EXPANDED STORY CIRCLE PROGRESS:</span>
-          <span class="progress-stat">${progress.completedCount} of 24 Divisions Completed (${progress.percentage}%)</span>
-        </div>
-
-        <!-- ACT 1 - GREEN: THE BEGINNING -->
-        <div class="act-section">
-          <div class="act-header act1">ACT 1 &ndash; GREEN: THE BEGINNING (1.1 &ndash; 1.8)</div>
-          ${act1Divisions.map(renderDivisionCard).join('\n')}
-        </div>
-
-        <!-- ACT 2 - YELLOW: THE MIDDLE -->
-        <div class="act-section">
-          <div class="act-header act2">ACT 2 &ndash; YELLOW: THE MIDDLE (2.1 &ndash; 2.8)</div>
-          ${act2Divisions.map(renderDivisionCard).join('\n')}
-        </div>
-
-        <!-- ACT 3 - RED: THE CLIMAX -->
-        <div class="act-section">
-          <div class="act-header act3">ACT 3 &ndash; RED: THE CLIMAX (3.1 &ndash; 3.8)</div>
-          ${act3Divisions.map(renderDivisionCard).join('\n')}
-        </div>
-
-        <!-- THE END -->
-        <div class="the-end-box">
-          <div class="the-end-title">&#9679; THE END &ndash; CENTRAL RESOLUTION</div>
-          <div class="the-end-text">
-            ${escapeHtml(storyCircle?.theEndNotes || 'The protagonist has traversed the full expanded 3-act circle, arriving back at the center: transformed, resolved, and establishing the permanent new normal.')}
+        <!-- PAGE 2: ACT 1 - GREEN: THE BEGINNING (1.1 - 1.8) -->
+        <div class="act-page">
+          <div class="act-page-header-block">
+            <div class="act-header act1">ACT 1 &ndash; GREEN: THE BEGINNING (1.1 &ndash; 1.8)</div>
+            <div class="act-subnote">Outer Circle (Green) &bull; Character establishment, ordinary world status quo, and the initial journey threshold.</div>
           </div>
+          ${renderActTable(act1Divisions, 'act1-table', 'act1-th')}
         </div>
 
-        <div class="footer">
-          Generated with Scripts by Darkchesa &bull; Dan Harmon Expanded Story Circle &bull; ${new Date().toLocaleDateString()}
+        <!-- PAGE 3: ACT 2 - YELLOW: THE MIDDLE (2.1 - 2.8) -->
+        <div class="act-page">
+          <div class="act-page-header-block">
+            <div class="act-header act2">ACT 2 &ndash; YELLOW: THE MIDDLE (2.1 &ndash; 2.8)</div>
+            <div class="act-subnote">Second Circle (Yellow) &bull; Rising trials, unfamiliar territory, midpoint breakthrough, and crisis.</div>
+          </div>
+          ${renderActTable(act2Divisions, 'act2-table', 'act2-th')}
+        </div>
+
+        <!-- PAGE 4: ACT 3 - RED: THE CLIMAX (3.1 - 3.8) -->
+        <div class="act-page">
+          <div class="act-page-header-block">
+            <div class="act-header act3">ACT 3 &ndash; RED: THE CLIMAX (3.1 &ndash; 3.8)</div>
+            <div class="act-subnote">Third Circle (Red) &bull; Final confrontation, decisive adaptation, heavy sacrifice, and master transformation.</div>
+          </div>
+          ${renderActTable(act3Divisions, 'act3-table', 'act3-th')}
+        </div>
+
+        <!-- PAGE 5: THE END - CENTRAL RESOLUTION -->
+        <div class="act-page">
+          <div class="act-page-header-block">
+            <div class="act-header the-end">THE END &ndash; CENTRAL RESOLUTION</div>
+            <div class="act-subnote">Centre Circle (PINK) &bull; The ultimate destination, final thematic resolution, and the permanent new normal.</div>
+          </div>
+          <div class="the-end-box">
+            <div class="the-end-title">&#9679; THE END &ndash; CENTRAL RESOLUTION</div>
+            <div class="the-end-text">
+              ${escapeHtml(storyCircle?.theEndNotes || 'The protagonist has traversed the full expanded 3-act circle, arriving back at the center: transformed, resolved, and establishing the permanent new normal.')}
+            </div>
+          </div>
+
+          <div class="end-summary-grid">
+            <div class="end-summary-card">
+              <div class="end-summary-label">TOTAL DIVISIONS</div>
+              <div class="end-summary-val">24 Stages</div>
+            </div>
+            <div class="end-summary-card">
+              <div class="end-summary-label">COMPLETED STAGES</div>
+              <div class="end-summary-val" style="color: #16A34A;">${progress.completedCount} / 24 (${progress.percentage}%)</div>
+            </div>
+            <div class="end-summary-card">
+              <div class="end-summary-label">ACT BREAKDOWNS</div>
+              <div class="end-summary-val">3 Acts + Centre</div>
+            </div>
+          </div>
+
+          <div class="footer">
+            Generated with Scripts by Darkchesa &bull; Dan Harmon Expanded Story Circle &bull; ${new Date().toLocaleDateString()}
+          </div>
         </div>
       </body>
     </html>

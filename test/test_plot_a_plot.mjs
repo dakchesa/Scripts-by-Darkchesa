@@ -3,6 +3,8 @@
  * Scripts by Darkchesa
  */
 
+import fs from 'fs';
+import path from 'path';
 import {
   STORY_CIRCLE_LAYERS,
   STORY_CIRCLE_DIVISIONS_SPEC,
@@ -177,6 +179,22 @@ for (let act = 1; act <= 3; act++) {
     assert(pdfHtml.includes(code) || pdfHtml.includes('&#10003;'), `SVG includes badge for division ${code}`);
   }
 }
+
+// 7. PDF Act Details Tabular Layout & Individual Page Breaks
+assert(pdfHtml.includes('class="act-table act1-table"'), 'PDF formats Act 1 in dedicated tabular structure');
+assert(pdfHtml.includes('class="act-table act2-table"'), 'PDF formats Act 2 in dedicated tabular structure');
+assert(pdfHtml.includes('class="act-table act3-table"'), 'PDF formats Act 3 in dedicated tabular structure');
+assert(pdfHtml.includes('STAGE &amp; OBJECTIVE') && pdfHtml.includes('STORY DESCRIPTION') && pdfHtml.includes('CHARACTER ACTIONS'), 'PDF tables include standard column headers');
+assert(pdfHtml.includes('page-break-before: always;'), 'PDF CSS enforces individual page breaks per Act');
+
+// 8. Workspace UI Side-by-Side Quick Jump Navigation
+const workspaceCode = fs.readFileSync(path.resolve('src/components/PlotAPlotWorkspace.js'), 'utf8');
+assert(workspaceCode.includes('styles.actNavRow'), 'Workspace includes side-by-side quick jump navigation row');
+assert(workspaceCode.includes('handleJumpToAct(\'act1\')'), 'Workspace includes quick jump button for ACT 1');
+assert(workspaceCode.includes('handleJumpToAct(\'act2\')'), 'Workspace includes quick jump button for ACT 2');
+assert(workspaceCode.includes('handleJumpToAct(\'act3\')'), 'Workspace includes quick jump button for ACT 3');
+assert(workspaceCode.includes('handleJumpToAct(\'theEnd\')'), 'Workspace includes quick jump button for THE END');
+assert(workspaceCode.includes('actLayouts.current[\'act1\']') && workspaceCode.includes('actLayouts.current[\'theEnd\']'), 'Workspace tracks onLayout coordinates for instant same-page scrolling');
 
 console.log(`\n====================================================`);
 console.log(`🎉 TEST SUMMARY: ${passedTests}/${totalTests} tests passed`);

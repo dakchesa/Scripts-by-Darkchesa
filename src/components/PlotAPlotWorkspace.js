@@ -10,7 +10,7 @@
  * - Interactive division editor modal integration
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -60,6 +60,18 @@ export default function PlotAPlotWorkspace({
   const [exportResultInfo, setExportResultInfo] = useState(null);
   const [isEditingEndNotes, setIsEditingEndNotes] = useState(false);
   const [endNotesInput, setEndNotesInput] = useState(() => storyCircle?.theEndNotes || '');
+
+  const scrollViewRef = useRef(null);
+  const actLayouts = useRef({ act1: 0, act2: 0, act3: 0, theEnd: 0 });
+  const [activeActNav, setActiveActNav] = useState('act1');
+
+  const handleJumpToAct = (actKey) => {
+    setActiveActNav(actKey);
+    const targetY = actLayouts.current[actKey];
+    if (typeof targetY === 'number' && scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ y: Math.max(0, targetY - 10), animated: true });
+    }
+  };
 
   useEffect(() => {
     if (initialStoryCircle) {
@@ -339,6 +351,7 @@ export default function PlotAPlotWorkspace({
       </View>
 
       <ScrollView
+        ref={scrollViewRef}
         style={styles.mainScrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -486,6 +499,89 @@ export default function PlotAPlotWorkspace({
           </View>
         </View>
 
+        {/* Quick Act Jump Bar: ACT 1, ACT 2, ACT 3 & THE END placed side by side */}
+        <View style={[styles.actNavCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <View style={styles.actNavHeaderRow}>
+            <Heroicon name="bolt" size={13} color={theme.accent} style={{ marginRight: 5 }} />
+            <Text style={[styles.actNavHeaderTitle, { color: theme.textSecondary }]}>
+              QUICK JUMP TO ACT BREAKDOWN
+            </Text>
+          </View>
+          <View style={styles.actNavRow}>
+            {/* ACT 1 Button */}
+            <TouchableOpacity
+              onPress={() => handleJumpToAct('act1')}
+              style={[
+                styles.actNavBtn,
+                {
+                  backgroundColor: activeActNav === 'act1' ? 'rgba(34, 197, 94, 0.18)' : theme.surfaceSubtle,
+                  borderColor: '#22C55E',
+                },
+              ]}
+              activeOpacity={0.7}
+              accessibilityLabel="Jump directly to Act 1 breakdown"
+            >
+              <View style={[styles.actNavDot, { backgroundColor: '#22C55E' }]} />
+              <Text style={[styles.actNavBtnText, { color: '#22C55E' }]}>ACT 1</Text>
+              <Text style={[styles.actNavBtnSub, { color: theme.textSecondary }]}>1.1 - 1.8</Text>
+            </TouchableOpacity>
+
+            {/* ACT 2 Button */}
+            <TouchableOpacity
+              onPress={() => handleJumpToAct('act2')}
+              style={[
+                styles.actNavBtn,
+                {
+                  backgroundColor: activeActNav === 'act2' ? 'rgba(250, 204, 21, 0.2)' : theme.surfaceSubtle,
+                  borderColor: '#FACC15',
+                },
+              ]}
+              activeOpacity={0.7}
+              accessibilityLabel="Jump directly to Act 2 breakdown"
+            >
+              <View style={[styles.actNavDot, { backgroundColor: '#FACC15' }]} />
+              <Text style={[styles.actNavBtnText, { color: '#EAB308' }]}>ACT 2</Text>
+              <Text style={[styles.actNavBtnSub, { color: theme.textSecondary }]}>2.1 - 2.8</Text>
+            </TouchableOpacity>
+
+            {/* ACT 3 Button */}
+            <TouchableOpacity
+              onPress={() => handleJumpToAct('act3')}
+              style={[
+                styles.actNavBtn,
+                {
+                  backgroundColor: activeActNav === 'act3' ? 'rgba(239, 68, 68, 0.18)' : theme.surfaceSubtle,
+                  borderColor: '#EF4444',
+                },
+              ]}
+              activeOpacity={0.7}
+              accessibilityLabel="Jump directly to Act 3 breakdown"
+            >
+              <View style={[styles.actNavDot, { backgroundColor: '#EF4444' }]} />
+              <Text style={[styles.actNavBtnText, { color: '#EF4444' }]}>ACT 3</Text>
+              <Text style={[styles.actNavBtnSub, { color: theme.textSecondary }]}>3.1 - 3.8</Text>
+            </TouchableOpacity>
+
+            {/* THE END Button */}
+            <TouchableOpacity
+              onPress={() => handleJumpToAct('theEnd')}
+              style={[
+                styles.actNavBtn,
+                {
+                  backgroundColor: activeActNav === 'theEnd' ? 'rgba(244, 114, 182, 0.22)' : theme.surfaceSubtle,
+                  borderColor: '#F472B6',
+                },
+              ]}
+              activeOpacity={0.7}
+              accessibilityLabel="Jump directly to The End resolution"
+            >
+              <View style={[styles.actNavDot, { backgroundColor: '#F472B6' }]} />
+              <Text style={[styles.actNavBtnText, { color: '#DB2777' }]}>THE END</Text>
+              <Text style={[styles.actNavBtnSub, { color: theme.textSecondary }]}>Climax</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* Section: Act Breakdowns & Story Details */}
         <View style={styles.actsSection}>
           <Text style={[styles.actsSectionHeader, { color: theme.text }]}>
@@ -493,7 +589,12 @@ export default function PlotAPlotWorkspace({
           </Text>
 
           {/* ACT 1 - GREEN: THE BEGINNING */}
-          <View style={styles.actGroup}>
+          <View
+            style={styles.actGroup}
+            onLayout={(e) => {
+              actLayouts.current['act1'] = e.nativeEvent.layout.y;
+            }}
+          >
             <View style={[styles.actBanner, { backgroundColor: 'rgba(34, 197, 94, 0.15)', borderColor: '#22C55E' }]}>
               <View style={[styles.actColorBar, { backgroundColor: '#22C55E' }]} />
               <View>
@@ -509,7 +610,12 @@ export default function PlotAPlotWorkspace({
           </View>
 
           {/* ACT 2 - YELLOW: THE MIDDLE */}
-          <View style={styles.actGroup}>
+          <View
+            style={styles.actGroup}
+            onLayout={(e) => {
+              actLayouts.current['act2'] = e.nativeEvent.layout.y;
+            }}
+          >
             <View style={[styles.actBanner, { backgroundColor: 'rgba(250, 204, 21, 0.18)', borderColor: '#FACC15' }]}>
               <View style={[styles.actColorBar, { backgroundColor: '#FACC15' }]} />
               <View>
@@ -525,7 +631,12 @@ export default function PlotAPlotWorkspace({
           </View>
 
           {/* ACT 3 - RED: THE CLIMAX */}
-          <View style={styles.actGroup}>
+          <View
+            style={styles.actGroup}
+            onLayout={(e) => {
+              actLayouts.current['act3'] = e.nativeEvent.layout.y;
+            }}
+          >
             <View style={[styles.actBanner, { backgroundColor: 'rgba(239, 68, 68, 0.15)', borderColor: '#EF4444' }]}>
               <View style={[styles.actColorBar, { backgroundColor: '#EF4444' }]} />
               <View>
@@ -541,7 +652,12 @@ export default function PlotAPlotWorkspace({
           </View>
 
           {/* THE END */}
-          <View style={styles.actGroup}>
+          <View
+            style={styles.actGroup}
+            onLayout={(e) => {
+              actLayouts.current['theEnd'] = e.nativeEvent.layout.y;
+            }}
+          >
             <View style={[styles.actBanner, { backgroundColor: 'rgba(244, 114, 182, 0.18)', borderColor: '#F472B6' }]}>
               <View style={[styles.actColorBar, { backgroundColor: '#EC4899' }]} />
               <View style={{ flex: 1 }}>
@@ -861,6 +977,55 @@ const styles = StyleSheet.create({
   quickIndicatorText: {
     fontSize: 10.5,
     fontWeight: 'bold',
+    fontFamily: FONTS.courier,
+  },
+  actNavCard: {
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 12,
+    marginBottom: 16,
+  },
+  actNavHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  actNavHeaderTitle: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    fontFamily: FONTS.ui,
+  },
+  actNavRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  actNavBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actNavDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginBottom: 3,
+  },
+  actNavBtnText: {
+    fontSize: 12.5,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+    fontFamily: FONTS.ui,
+  },
+  actNavBtnSub: {
+    fontSize: 9.5,
+    marginTop: 2,
     fontFamily: FONTS.courier,
   },
   actsSection: {
