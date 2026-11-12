@@ -67,6 +67,38 @@ export default function ToolsModal({
             </TouchableOpacity>
           </View>
 
+          {/* Featured Feature Button: Plot a Plot (Dan Harmon Story Circle) */}
+          <TouchableOpacity
+            onPress={() => {
+              onClose();
+              onSelectTool('plot_a_plot');
+            }}
+            style={[
+              styles.plotAPlotCard,
+              { backgroundColor: theme.surfaceSubtle, borderColor: theme.border },
+            ]}
+            activeOpacity={0.7}
+            accessibilityLabel="Plot a Plot - Feeling stuck? Craft a Plot."
+          >
+            <View style={styles.plotAPlotLeft}>
+              <View style={[styles.plotAPlotIconWrapper, { backgroundColor: 'rgba(34, 197, 94, 0.18)' }]}>
+                <Heroicon name="story-circle" size={26} color="#22C55E" />
+              </View>
+              <View style={styles.plotAPlotTextGroup}>
+                <View style={styles.plotAPlotTitleRow}>
+                  <Text style={[styles.plotAPlotTitle, { color: theme.text }]}>Plot a Plot</Text>
+                  <View style={styles.newBadge}>
+                    <Text style={styles.newBadgeText}>STORY CIRCLE</Text>
+                  </View>
+                </View>
+                <Text style={[styles.plotAPlotTagline, { color: theme.textSecondary }]}>
+                  Feeling stuck? Craft a Plot.
+                </Text>
+              </View>
+            </View>
+            <Heroicon name="chevron-right" size={20} color={theme.textSecondary} />
+          </TouchableOpacity>
+
           {/* Grid of Tools with Heroicons */}
           <View style={styles.grid}>
             {tools.map((tool) => (
@@ -138,7 +170,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   title: {
     fontSize: 20,
@@ -151,6 +183,59 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  plotAPlotCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    marginBottom: 18,
+  },
+  plotAPlotLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  plotAPlotIconWrapper: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  plotAPlotTextGroup: {
+    flex: 1,
+  },
+  plotAPlotTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  plotAPlotTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    fontFamily: FONTS.ui,
+  },
+  newBadge: {
+    backgroundColor: 'rgba(34, 197, 94, 0.2)',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  newBadgeText: {
+    color: '#22C55E',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    fontFamily: FONTS.ui,
+  },
+  plotAPlotTagline: {
+    fontSize: 12.5,
+    marginTop: 2,
+    fontFamily: FONTS.ui,
   },
   grid: {
     flexDirection: 'row',

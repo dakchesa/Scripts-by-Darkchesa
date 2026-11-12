@@ -8,6 +8,7 @@
 
 import Platform from '../utils/platform.js';
 import { SDACH_EXTENSION, SDACH_SIGNATURE, SDACH_CURRENT_VERSION, ELEMENT_TYPES } from '../types/screenplay.js';
+import { validateAndSanitizeStoryCircle } from '../types/storyCircle.js';
 
 /**
  * Validate script object structure before serialization
@@ -51,6 +52,7 @@ export function serializeSdach(script) {
         enableCharacterHighlights: true,
       },
       characterPalette: script.characterPalette || {},
+      storyCircle: script.storyCircle ? validateAndSanitizeStoryCircle(script.storyCircle) : null,
       elements: script.elements.map((el, index) => ({
         id: el.id || `elem_${index}_${Date.now()}`,
         type: Object.values(ELEMENT_TYPES).includes(el.type) ? el.type : ELEMENT_TYPES.ACTION,
@@ -129,6 +131,7 @@ function normalizeScript(rawScript) {
       enableCharacterHighlights: rawScript.settings?.enableCharacterHighlights ?? true,
     },
     characterPalette: rawScript.characterPalette || {},
+    storyCircle: rawScript.storyCircle ? validateAndSanitizeStoryCircle(rawScript.storyCircle) : null,
     elements: elements.length > 0 ? elements : [
       { id: 'elem_init', type: ELEMENT_TYPES.SCENE_HEADING, text: 'INT. SCENE - DAY' },
       { id: 'elem_init_act', type: ELEMENT_TYPES.ACTION, text: '' }

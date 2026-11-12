@@ -39,6 +39,7 @@ import FindReplaceModal from '../components/FindReplaceModal';
 import CharacterHighlightModal from '../components/CharacterHighlightModal';
 import ScriptPreviewModal from '../components/ScriptPreviewModal';
 import ExportResultModal from '../components/ExportResultModal';
+import PlotAPlotWorkspace from '../components/PlotAPlotWorkspace';
 
 export default function EditorScreen({
   initialScript,
@@ -58,6 +59,7 @@ export default function EditorScreen({
   const [findReplaceVisible, setFindReplaceVisible] = useState(false);
   const [highlightModalVisible, setHighlightModalVisible] = useState(false);
   const [previewModalVisible, setPreviewModalVisible] = useState(false);
+  const [plotAPlotVisible, setPlotAPlotVisible] = useState(false);
   const [titlePageModalVisible, setTitlePageModalVisible] = useState(false);
   const [isContinuousView, setIsContinuousView] = useState(
     initialScript?.settings?.continuousView ?? true
@@ -259,6 +261,9 @@ export default function EditorScreen({
    */
   const handleSelectTool = (toolId) => {
     switch (toolId) {
+      case 'plot_a_plot':
+        setPlotAPlotVisible(true);
+        break;
       case 'find_replace':
         setFindReplaceVisible(true);
         break;
@@ -451,6 +456,26 @@ export default function EditorScreen({
         visible={exportModalVisible}
         onClose={() => setExportModalVisible(false)}
         fileInfo={exportResultInfo}
+        theme={theme}
+      />
+
+      {/* Plot a Plot: Dan Harmon Story Circle Workspace */}
+      <PlotAPlotWorkspace
+        visible={plotAPlotVisible}
+        onClose={() => setPlotAPlotVisible(false)}
+        scriptTitle={script.title}
+        initialStoryCircle={script.storyCircle}
+        onUpdateStoryCircle={(updatedStoryCircle) => {
+          setScript((prev) => {
+            const nextScript = {
+              ...prev,
+              storyCircle: updatedStoryCircle,
+              updatedAt: new Date().toISOString(),
+            };
+            saveScript(nextScript).catch(console.warn);
+            return nextScript;
+          });
+        }}
         theme={theme}
       />
     </View>

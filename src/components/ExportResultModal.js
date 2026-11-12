@@ -186,32 +186,48 @@ export default function ExportResultModal({
             </TouchableOpacity>
           </View>
 
-          {/* Action Buttons: Open, Share, Done */}
-          <View style={styles.actionRow}>
-            <TouchableOpacity
-              onPress={handleOpen}
-              style={[styles.primaryActionBtn, { backgroundColor: theme.accent }]}
-              accessibilityLabel="Open exported file"
-            >
-              <Heroicon name="arrow-top-right-on-square" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
-              <Text style={styles.primaryActionText}>Open File</Text>
-            </TouchableOpacity>
+          {/* Action Buttons: Open, Share (eliminated for PDF Ready card per user request) */}
+          {!isPdf && (
+            <View style={styles.actionRow}>
+              <TouchableOpacity
+                onPress={handleOpen}
+                style={[styles.primaryActionBtn, { backgroundColor: theme.accent }]}
+                accessibilityLabel="Open exported file"
+              >
+                <Heroicon name="arrow-top-right-on-square" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
+                <Text style={styles.primaryActionText}>Open File</Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={handleShare}
-              style={[styles.secondaryActionBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
-              accessibilityLabel="Share file"
-            >
-              <Heroicon name="share" size={18} color={theme.text} style={{ marginRight: 6 }} />
-              <Text style={[styles.secondaryActionText, { color: theme.text }]}>Share</Text>
-            </TouchableOpacity>
-          </View>
+              <TouchableOpacity
+                onPress={handleShare}
+                style={[styles.secondaryActionBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
+                accessibilityLabel="Share file"
+              >
+                <Heroicon name="share" size={18} color={theme.text} style={{ marginRight: 6 }} />
+                <Text style={[styles.secondaryActionText, { color: theme.text }]}>Share</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
+          {/* Close Button: Sole button for PDF Ready card */}
           <TouchableOpacity
             onPress={onClose}
-            style={[styles.doneBtn, { borderColor: theme.border }]}
+            style={[
+              isPdf
+                ? [styles.primaryActionBtn, { backgroundColor: theme.accent, width: '100%', marginTop: 2 }]
+                : [styles.doneBtn, { borderColor: theme.border }],
+            ]}
+            accessibilityLabel="Close export modal"
           >
-            <Text style={[styles.doneBtnText, { color: theme.textSecondary }]}>Close</Text>
+            <Text
+              style={
+                isPdf
+                  ? styles.primaryActionText
+                  : [styles.doneBtnText, { color: theme.textSecondary }]
+              }
+            >
+              Close
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

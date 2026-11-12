@@ -446,31 +446,13 @@ export async function exportScreenplayPDF(script, options = {}) {
 
         const fullLocation = `${readableFolder} / ${filename}`;
 
-        AlertHelper.alert(
-          'PDF Saved to Device',
-          `Screenplay PDF was successfully saved!\n\nFile: ${filename}\nLocation on Device:\n${fullLocation}\n\nWould you like to open or share this PDF?`,
-          [
-            { text: 'Done', style: 'cancel' },
-            {
-              text: 'Open / Share',
-              onPress: async () => {
-                if (await Sharing.isAvailableAsync()) {
-                  await Sharing.shareAsync(pdfResult.uri, {
-                    mimeType: 'application/pdf',
-                    dialogTitle: `Share ${filename}`,
-                    UTI: 'com.adobe.pdf',
-                  });
-                }
-              },
-            },
-          ]
-        );
-
         return {
           success: true,
           location: fullLocation,
-          fileUri: createdFileUri,
+          fileUri: pdfResult.uri || createdFileUri,
           filename,
+          type: 'pdf',
+          title: script.title,
         };
       }
     }
@@ -505,31 +487,13 @@ export async function exportScreenplayPDF(script, options = {}) {
 
     const shareUri = targetPath || pdfResult.uri;
 
-    AlertHelper.alert(
-      'PDF Saved to Device',
-      `Screenplay PDF saved successfully!\n\nFile: ${filename}\nLocation on Device:\n${readableLocation}\n\nWould you like to open or share this PDF?`,
-      [
-        { text: 'Done', style: 'cancel' },
-        {
-          text: 'Open / Share',
-          onPress: async () => {
-            if (await Sharing.isAvailableAsync()) {
-              await Sharing.shareAsync(shareUri, {
-                mimeType: 'application/pdf',
-                dialogTitle: `Share ${filename}`,
-                UTI: 'com.adobe.pdf',
-              });
-            }
-          },
-        },
-      ]
-    );
-
     return {
       success: true,
       location: readableLocation,
       fileUri: shareUri,
       filename,
+      type: 'pdf',
+      title: script.title,
     };
   } catch (err) {
     console.error('PDF export error:', err);
