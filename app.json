@@ -16,7 +16,10 @@
             "CFBundleTypeName": "Darkchesa Script Document",
             "CFBundleTypeRole": "Editor",
             "LSHandlerRank": "Owner",
-            "LSItemContentTypes": ["com.darkchesa.sdach", "public.json"]
+            "LSItemContentTypes": [
+              "com.darkchesa.sdach",
+              "public.json"
+            ]
           }
         ]
       }
@@ -42,7 +45,10 @@
               "pathPattern": ".*\\.sdach"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -53,6 +59,11 @@
     "plugins": [
       "expo-sharing",
       "expo-document-picker"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "07548194-ba3f-4f1c-856d-dd3ca951ec9c"
+      }
+    }
   }
 }
